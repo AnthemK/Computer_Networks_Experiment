@@ -8,14 +8,14 @@
 #define  _WINSOCK_DEPRECATED_NO_WARNINGS
 
 using namespace std;
-const int maxn = 10000;
+const int maxn = 100000;
 
 //创建一个数据包socket
 int getUDPSocket()
 {
 	WORD ver = MAKEWORD(2, 2);
 	WSADATA lpData;
-	int err = WSAStartup(ver, &lpData);
+	int err = WSAStartup(ver, &lpData);//欲使用的 Windows Sockets API 版本,高字节定义的是次版本号，低字节定义的是主版本号
 	if (err != 0) return -1;
 	switch (err) 
 	{
@@ -41,7 +41,7 @@ int getUDPSocket()
 			return -1;
 		}
 	}
-	int udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议
+	int udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议,数据报类型
 	if (udpsocket == INVALID_SOCKET) return -2;
 	//通过WSAGetLastError取得具体的错误代码
 	return udpsocket;
@@ -63,20 +63,58 @@ bool PrintIP(u_long ipval) {
 	printf("IP: %d.%d.%d.%d\n", ipval & 0xff, (ipval>>8) & 0xff, (ipval >> 16) & 0xff, (ipval >> 24) & 0xff);
 	return true;
 }
-
-int main()
-{
-	char InputIP[10000];
-	WrongIP:
-	scanf_s("%s", InputIP,15);
-	sockaddr_in addr = getSockAddr_in(InputIP, 69);
-	if (addr.sin_addr.S_un.S_addr == INADDR_NONE) { puts("Illegal ip address"); goto WrongIP; }
-	PrintIP(addr.sin_addr.S_un.S_addr);
-
-
-
+int AssemblyRequestDownloadPack(char* aimstr, char* FileName,int typ) {
+	int len = strlen(FileName);
+	aimstr[0] = 0x00;
+	aimstr[1] = 0x01;
+	memcpy(aimstr + 2, FileName, len);
+	memcpy(aimstr + 2 + len, "\0", 1);
+	if (typ == 1)
+	{
+		memcpy(aimstr + 2 + len + 1, "octet", 5);
+		memcpy(aimstr + 2 + len + 1 + 5, "\0", 1);
+		return len + 2 + 2 + 5;
+	} else {
+		memcpy(aimstr + 2 + len + 1, "netascii", 8);
+		memcpy(aimstr + 2 + len + 1 + 8, "\0", 1);
+		return len + 2 + 2 + 8;
+	}
 }
 
+char InputStr[maxn],SendStr[maxn];
+int main()
+{
+WrongIP:
+	scanf_s("%s", InputStr, 15);
+	sockaddr_in addr = getSockAddr_in(InputStr, 69);
+	if (addr.sin_addr.S_un.S_addr == INADDR_NONE) { puts("Illegal IP Address"); goto WrongIP; }
+	PrintIP(addr.sin_addr.S_un.S_addr);
+
+	SOCKET MySOC = getUDPSocket();
+
+WrongFIle:
+	scanf_s("%s", InputStr, MAX_PATH);
+	int datalen = AssemblyRequestDownloadPack(SendStr, InputStr, 1);
+	int err = sendto(MySOC, SendStr, datalen, 0, (sockaddr*)&addr, sizeof(addr));
+	if (err != datalen)
+	{
+		cout << "sendto failed" << endl;
+		goto WrongFIle;
+	}
+
+	char* FileName;
+	FILE* fp;
+	for (FileName = InputStr + strlen(InputStr); FileName > InputStr && (*FileName) != '\\'; FileName--);
+	if (*FileName == '\\')err = fopen_s(&fp, FileName + 1, "wb");
+	else err = fopen_s(&fp, FileName, "wb");
+	if (err)
+	{
+		cout << "File open failed!" << endl;
+		goto WrongFIle;
+	}
+
+	fclose(fp);
+}
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单
 
