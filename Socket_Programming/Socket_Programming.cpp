@@ -1,13 +1,9 @@
 ﻿// Socket_Programming.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //#include "stdafx.h"
-#include <WinSock2.h>
-#include <iostream>
-#include <WS2tcpip.h>
-#include <cstdlib>
-#pragma comment(lib,"ws2_32.lib")	
-#define  _WINSOCK_DEPRECATED_NO_WARNINGS
+#include "Client_Const.h"
 
 using namespace std;
+using namespace TFTP;
 const int maxn = 100000;
 
 //创建一个数据包socket
@@ -21,23 +17,23 @@ int getUDPSocket()
 	{
 		case 0: break;
 		case WSASYSNOTREADY: {
-			puts("底层网络子系统没有准备好。");
+			puts(ErrMsg_getUDPSocket[0]);
 			return -1;
 			}
 		case WSAVERNOTSUPPORTED: {
-			puts("Winsock 版本信息号不支持。");
+			puts(ErrMsg_getUDPSocket[1]);
 			return -1;
 		}
 		case WSAEINPROGRESS: {
-			puts("阻塞式 Winsock1.1 存在于进程中。");
+			puts(ErrMsg_getUDPSocket[2]);
 			return -1;
 		}
 		case WSAEPROCLIM: {
-			puts("已经达到 Winsock 使用量的上限。");
+			puts(ErrMsg_getUDPSocket[3]);
 			return -1;
 		}
 		case WSAEFAULT: {
-			puts("lpWSAData 不是一个有效的指针");
+			puts(ErrMsg_getUDPSocket[4]);
 			return -1;
 		}
 	}
@@ -63,47 +59,42 @@ bool PrintIP(u_long ipval) {
 	printf("IP: %d.%d.%d.%d\n", ipval & 0xff, (ipval>>8) & 0xff, (ipval >> 16) & 0xff, (ipval >> 24) & 0xff);
 	return true;
 }
-int AssemblyRequestDownloadPack(char* aimstr, char* FileName,int typ) {
-	int len = strlen(FileName);
-	aimstr[0] = 0x00;
-	aimstr[1] = 0x01;
-	memcpy(aimstr + 2, FileName, len);
-	memcpy(aimstr + 2 + len, "\0", 1);
-	if (typ == 1)
-	{
-		memcpy(aimstr + 2 + len + 1, "octet", 5);
-		memcpy(aimstr + 2 + len + 1 + 5, "\0", 1);
-		return len + 2 + 2 + 5;
-	} else {
-		memcpy(aimstr + 2 + len + 1, "netascii", 8);
-		memcpy(aimstr + 2 + len + 1 + 8, "\0", 1);
-		return len + 2 + 2 + 8;
-	}
+
+
+int AssemblyACKPack(char* aimstr,short* ACKBlockNo)
+{
+	char ack[4];
+	ack[0] = 0x00;
+	ack[1] = 0x04;
+	memcpy(ack + 2, ACKBlockNo, 2);
+	return true;
 }
 
 char InputStr[maxn],SendStr[maxn];
+int err, datalen;  //err存储函数返回信息， datalen存储数据长度
 int main()
 {
+	SOCKET MySOC = getUDPSocket();   //初始化获取本地的的socket
 WrongIP:
-	scanf_s("%s", InputStr, 15);
-	sockaddr_in addr = getSockAddr_in(InputStr, 69);
+	scanf_s("%s", InputStr, DefBufSize);
+	sockaddr_in addr = getSockAddr_in(InputStr, DefSvrPort);
 	if (addr.sin_addr.S_un.S_addr == INADDR_NONE) { puts("Illegal IP Address"); goto WrongIP; }
 	PrintIP(addr.sin_addr.S_un.S_addr);
 
-	SOCKET MySOC = getUDPSocket();
 
 WrongFIle:
-	scanf_s("%s", InputStr, MAX_PATH);
-	int datalen = AssemblyRequestDownloadPack(SendStr, InputStr, 1);
-	int err = sendto(MySOC, SendStr, datalen, 0, (sockaddr*)&addr, sizeof(addr));
+	scanf_s("%s", InputStr, DefBufSize);
+	datalen = AssemblyRequestDownloadPack(SendStr, InputStr, 1);
+	err = sendto(MySOC, SendStr, datalen, 0, (sockaddr*)&addr, sizeof(addr));
+	SendStr[0] = 0;
 	if (err != datalen)
 	{
 		cout << "sendto failed" << endl;
 		goto WrongFIle;
 	}
 
-	char* FileName;
-	FILE* fp;
+	char* FileName;    //获取文件名
+	FILE* fp;    //文件指针
 	for (FileName = InputStr + strlen(InputStr); FileName > InputStr && (*FileName) != '\\'; FileName--);
 	if (*FileName == '\\')err = fopen_s(&fp, FileName + 1, "wb");
 	else err = fopen_s(&fp, FileName, "wb");
@@ -113,6 +104,63 @@ WrongFIle:
 		goto WrongFIle;
 	}
 
+	while (true)
+	{
+		char buf[1024];
+		sockaddr_in server;
+		int len = sizeof(server);
+		err = recvfrom(MySOC, buf, 1024, 0, (sockaddr*)&server, &len);
+		//发送请求下载到服务器69端口后，服务端会随机找一个端口来发送数据给客户端，客户端返回确认报文时，不能再向69端口发送ACK，而是向该端口发送ACK，所以需要保存新的地址信息server，用该地址信息来进行数据传输
+		if (err > 0)
+		{
+			short flag;
+			memcpy(&flag, buf, 2);
+			flag = ntohs(flag); //网络字节序转换为主机字节序，很重要
+			if (flag == 3)
+			{
+				UINT16 a;
+					short no;
+				memcpy(&no, buf + 2, 2);
+				fwrite(buf + 4, err - 4, 1, fp);
+				if (err < 512)
+				{
+					std::cout << "All Package Download Finished!" << std::endl;
+					break;
+				}
+				std::cout <<"Block "<<no << " Download Finished!" << std::endl;
+				//发送确认报文
+				AssemblyACKPack(SendStr,&no);
+				err = sendto(MySOC, SendStr, 4, 0, (sockaddr*)&server, sizeof(server));
+				SendStr[0] = 0;
+				if (err != 4)
+				{
+					std::cout << "ACK Error" << WSAGetLastError() << std::endl;
+					break;
+				}
+				else std::cout << "ACK Success" << std::endl;
+			} else if (flag == 5)
+			{
+				//服务端返回了错误信息
+				short errorcode;
+				memcpy(&errorcode, buf + 2, 2);
+				errorcode = ntohs(errorcode);
+				InputStr[0] = 0;
+				int iter = 0;
+				while ((*buf + iter + 4) != 0)
+				{
+					memcpy(InputStr + iter, buf + iter + 4, 1);
+					++iter;
+				}
+				std::cout << "Error" << errorcode << " :  " << InputStr << std::endl;
+				InputStr[0] = 0;
+				break;
+			}
+			else {
+				std::cout << "Error Operation Code"<< std::endl;
+				break;
+			}
+		}
+	}
 	fclose(fp);
 }
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
