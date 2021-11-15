@@ -141,11 +141,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Client_Const.cpp" />
+    <ClCompile Include="Log_Output.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Socket_Programming.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client_Const.h" />
+    <ClInclude Include="Log_Output.h" />
     <ClInclude Include="Packet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

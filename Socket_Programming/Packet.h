@@ -9,7 +9,7 @@ namespace TFTP {
 		
 		byte buf[DefBufSize];	//数据包缓冲区  1024
 		int Packetlen;	//数据包有效长度  
-		Packet() :buf(""), Packetlen(0) {}
+		Packet() :buf(""), Packetlen(0) {}   //构造函数，初始化
 
 		void setPacketLen(const int l = 0);  //设置数据包有效长度
 		int getDataLen() const;    //获取DATA包中数据长度
@@ -21,27 +21,22 @@ namespace TFTP {
 		void setOp(uint16 Opcode);    //设置数据包的操作码
 
 
-		byte* GetByteAddr(int Aimpls);
-		const byte* getErrMsg() const;
-		//获取DATA包的数据(基地址)
-		const byte* getData() const;
+		byte* GetByteAddr(int Aimpls);  //获得buf+Aimpls处的地址
+		const byte* getErrMsg() const;   //获得ErrMsg信息 
+		const byte* getData() const;  //获取DATA包的数据(基地址)
 
-		//解析成16位无符号数
-		uint16 ExtractUint16(int base = 0) const;
-		uint16 ExtractOpCode();
-		uint16 ExtractBlockNo();
-		uint16 ExtractErrCode();
+		uint16 ExtractUint16(int base = 0) const;      //解析base位置开始的两个字节成16位无符号数
+		uint16 ExtractOpCode();     //解析Opcode
+		uint16 ExtractBlockNo();   //解析BlockNo
+		uint16 ExtractErrCode();   //解析ErrCode
 
 
 		bool PackRQ(uint16 OpRQ, const char* Filename, const int Modetype); //opRQ表示R/Q种类   FileName为请求的文件名   typ为0 传输二进制，否则netascii码
 		bool PackDATA(uint16 blockNo, const char* data); //封装DATA包 blockNo表示包的编号，data为数据
-		//封装ACK包
-		void PackACK(uint16 blockNo);
-		//封装ERROR包
-		void PackERROR(uint16 errCode, const char* msg = nullptr);
+		void PackACK(uint16 blockNo);   //封装一个ACK包
+		void PackERROR(uint16 errCode, const char* msg = nullptr);   //封装一个ERROR包  errCode为1-7，否则输入msg，再否则回复未定义错误
 
-		//核查数据包类型
-		uint16 checkPacket();
+		uint16 checkPacket();		//核查数据包类型以及基本的合法性判断
 	};
 
 
