@@ -1,47 +1,12 @@
 ﻿// Socket_Programming.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //#include "stdafx.h"
-#include "Client_Const.h"
+#include "Const.h"
 
 using namespace std;
 using namespace TFTP;
 const int maxn = 100000;
 
 //创建一个数据包socket
-int getUDPSocket()
-{
-	WORD ver = MAKEWORD(2, 2);
-	WSADATA lpData;
-	int err = WSAStartup(ver, &lpData);//欲使用的 Windows Sockets API 版本,高字节定义的是次版本号，低字节定义的是主版本号
-	if (err != 0) return -1;
-	switch (err) 
-	{
-		case 0: break;
-		case WSASYSNOTREADY: {
-			puts(ErrMsg_getUDPSocket[0]);
-			return -1;
-			}
-		case WSAVERNOTSUPPORTED: {
-			puts(ErrMsg_getUDPSocket[1]);
-			return -1;
-		}
-		case WSAEINPROGRESS: {
-			puts(ErrMsg_getUDPSocket[2]);
-			return -1;
-		}
-		case WSAEPROCLIM: {
-			puts(ErrMsg_getUDPSocket[3]);
-			return -1;
-		}
-		case WSAEFAULT: {
-			puts(ErrMsg_getUDPSocket[4]);
-			return -1;
-		}
-	}
-	int udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议,数据报类型
-	if (udpsocket == INVALID_SOCKET) return -2;
-	//通过WSAGetLastError取得具体的错误代码
-	return udpsocket;
-}
 
 //获取TCP/IP协议栈下 指定地址信息数据结构
 sockaddr_in getSockAddr_in(char* ip, int port)  //ip  "127.0.0.1."

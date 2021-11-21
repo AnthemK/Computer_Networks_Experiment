@@ -38,7 +38,7 @@ namespace TFTP{
 	uint16 Packet::ExtractUint16(int base) const {
 		uint16 ext_val;
 		memcpy(&ext_val, buf + base, 2);
-		return ntohs(ext_val);  //记得转换顺序
+		return ntohs(ext_val);       //转换顺序
 	}
 	uint16 Packet::ExtractOpCode() {return ExtractUint16(0);}
 	uint16 Packet::ExtractBlockNo() { return ExtractUint16(2); }
@@ -46,11 +46,11 @@ namespace TFTP{
 
 	bool Packet::PackRQ(uint16 OpRQ, const char* Filename, const int Modetype) {
 		if (OpRQ != 1 && OpRQ != 2) {
-			//??????????????????????????????????????????????????????????????????????????
+			Log_Output::OutputtoBoth(1,"OpCode is not 1 or 2!");
 			return false;
 		}
 		if (Modetype != 0 && Modetype != 1) {
-			//??????????????????????????????????????????????????????????????????????????
+			Log_Output::OutputtoBoth(1, "ModeType Illegal!");
 			return false;
 		}
 		setPacketLen();
@@ -61,7 +61,7 @@ namespace TFTP{
 	}
 	bool Packet::PackDATA(uint16 blockNo, const char* data) {
 		if (strlen(data) > DataMaxSize) {
-			//??????????????????????????????????????????????????????????????????????????
+			Log_Output::OutputtoBoth(1, "Data too Large!");
 			return false;
 		}
 		setPacketLen();
@@ -84,46 +84,73 @@ namespace TFTP{
 		else if (errCode == 0) addChars(ErrMsg[0]);     //未定义错误
 	}
 
-	uint16 Packet::checkPacket() {
-		//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+	uint16 Packet::CheckPacket() {
 		if (Packetlen < 2) {
-			cerr << "ERR: packet too short\n";
+			Log_Output::OutputtoBoth(1,"Packet Too Short!");
+			return 0;
+		}
+		if (Packetlen > DefBufSize) {
+			Log_Output::OutputtoBoth(1, "Packet Too Long!");
 			return 0;
 		}
 		uint16 op = ExtractOpCode();
+		int lenth;
+		char* TestStr;
 		switch (op) {
 		case OpRRQ:
 			if (Packetlen < 4) {
-				cerr << "ERR: short RRQ packet\n";
+				Log_Output::OutputtoBoth(1, "RRQ Packet Too Short!");
+				return 0;
+			}
+			lenth = strlen((char*)GetByteAddr(2));
+			TestStr = (char *)GetByteAddr(lenth+4);
+			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
+			{
+				Log_Output::OutputtoBoth(1, "RRQ Packet Mode Illegal!");
 				return 0;
 			}
 			return op;
 		case OpWRQ:
 			if (Packetlen < 4) {
-				cerr << "ERR: short WRQ packet\n";
+				Log_Output::OutputtoBoth(1, "WRQ Packet Too Short!");
+				return 0;
+			}
+			lenth = strlen((char*)GetByteAddr(2));
+			TestStr = (char*)GetByteAddr(lenth + 4);
+			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
+			{
+				Log_Output::OutputtoBoth(1, "WRQ Packet Mode Illegal!");
 				return 0;
 			}
 			return op;
 		case OpDATA:
 			if (Packetlen < 4) {
-				cerr << "ERR: short DATA packet\n";
+				Log_Output::OutputtoBoth(1, "DATA Packet Too Short!");
 				return 0;
 			}
 			return op;
 		case OpACK:
 			if (Packetlen < 4) {
-				cerr << "ERR: short ACK packet\n";
+				Log_Output::OutputtoBoth(1, "ACK Packet Too Short!");
+				return 0;
+			}
+			if (Packetlen > 4) {
+				Log_Output::OutputtoBoth(1, "ACK Packet Too Long!");
 				return 0;
 			}
 			return op;
 		case OpERROR:
 			if (Packetlen < 5) {
-				cerr << "ERR: short ERROR packet\n";
+				Log_Output::OutputtoBoth(1, "ERR Packet Too Short!");
+				return 0;
+			}
+			if (ExtractErrCode() >= 8) {
+				Log_Output::OutputtoBoth(1, "Illegal Error Code!");
 				return 0;
 			}
 			return op;
 		default:
-			cerr << "ERR: unknown opcode\n";
+			Log_Output::OutputtoBoth(1, "Unknown Opcode!");
 			return 0;
 		}
 	}

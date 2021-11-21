@@ -140,13 +140,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client_Const.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Const.cpp" />
+    <ClCompile Include="General_Class.cpp" />
     <ClCompile Include="Log_Output.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Socket_Programming.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client_Const.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Const.h" />
+    <ClInclude Include="General_Class.h" />
     <ClInclude Include="Log_Output.h" />
     <ClInclude Include="Packet.h" />
   </ItemGroup>

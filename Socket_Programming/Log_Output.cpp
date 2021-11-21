@@ -1,6 +1,11 @@
 #include "Log_Output.h"
 
 namespace TFTP {
+	ofstream Log_Output::FilePoint("log.txt", ofstream::app);	//日志文件
+	ostringstream Log_Output::Log_Msg;	//输出字节流
+	char Log_Output::timeBuf[100];
+	//以上三行为初始化
+
 	Log_Output::Log_Output() {
 		FilePoint.open("log.txt", ofstream::app);
 		timeBuf[0] = 0;
@@ -31,21 +36,29 @@ namespace TFTP {
 		else return Log_Output_Title[0];
 	}
 
-	void Log_Output::OutputtoLog(const char* Output_Msg) {
+	void Log_Output::OutputtoLog(const int Infor_Type,const char* Output_Msg) {
 		GetNowTime();
-		FilePoint << timeBuf << '\n' << Output_Msg <<'\n' << Log_Msg.str();
+		if (Output_Msg != NULL) FilePoint << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+		else FilePoint << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Log_Msg.str();
 		ClearLogMsg();
 	}
 
-	void Log_Output::OutputtoCerr(const char* Output_Msg) {
+	void Log_Output::OutputtoCerr(const int Infor_Type,const char* Output_Msg) {
 		GetNowTime();
-		cerr << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+		if (Output_Msg != NULL) cerr << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+		else cerr << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Log_Msg.str();
 		ClearLogMsg();
 	}
-	void Log_Output::OutputtoBoth(const char* Output_Msg) {
+	void Log_Output::OutputtoBoth(const int Infor_Type,const char* Output_Msg) {
 		GetNowTime();
-		FilePoint << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
-		cerr << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+		if (Output_Msg != NULL) {
+			FilePoint << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+			cerr << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Output_Msg << '\n' << Log_Msg.str();
+		}
+		else {
+			FilePoint << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Log_Msg.str();
+			cerr << FindOutput_Msg(Infor_Type) << '\n' << timeBuf << '\n' << Log_Msg.str();
+		}
 		ClearLogMsg();
 	}
 }
