@@ -2,7 +2,6 @@
 #define _LOG_OUTPUT_H
 
 #include "Const.h"
-
 namespace TFTP {
 
 	class Log_Output {

@@ -32,7 +32,7 @@ namespace TFTP {
 		timeBuf[0] = 0;
 	}
 
-	const char* FindOutput_Msg(int Infor_Type) {
+	const char* Log_Output::FindOutput_Msg(int Infor_Type) {
 		if (Infor_Type>0 && Infor_Type<5) return Log_Output_Title[Infor_Type];
 		else return Log_Output_Title[0];
 	}

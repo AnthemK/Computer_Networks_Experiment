@@ -18,14 +18,7 @@ namespace TFTP {
 		//不知道是否sizeofsockaddr==sizeof(sockaddr)的时候才成立
 	}
 	int Client_Class::AssemblyRQPacket() {
-		SendPkt.PackRQ(Connection_Infor.FunctionType, Connection_Infor.FilePath, File_DataMode);
-	}
-	int Client_Class::Parse_ErrorPackets() {
-		Log_Output::Log_Msg << " Received a error-packet Code:" << ReceivePkt.ExtractErrCode();
-		if (ReceivePkt.Packetlen > 4)
-			Log_Output::Log_Msg<<'\n' << " With message:" << ReceivePkt.getErrMsg();
-		Log_Output::Log_Msg << "\n";
-		Log_Output::OutputtoBoth(1, NULL);
+		return SendPkt.PackRQ(Connection_Infor.FunctionType, Connection_Infor.FilePath, File_DataMode);
 	}
 	int Client_Class::BestEffort_Send() {       //待检查
 		Connection_Infor.ResendTimer = time(NULL) + DefTimeOut;  //在这个时间之后重传
@@ -66,6 +59,15 @@ namespace TFTP {
 				continue;
 			}
 			ReceivePkt.setPacketLen(err);		//设置接收包长度
+
+			if (showInfo)
+			{
+				Log_Output::Log_Msg << " In Best-Effort Send :\n";
+				Parse_Print_Packet(ReceivePkt);
+			}
+			//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+			//查看包的情况
+
 			uint16 op = ReceivePkt.CheckPacket();	//检测接收包，同时也获取包的op值
 			if (op <= 0) {
 				Log_Output::OutputtoBoth(3, "Recive a packet which is illegal!");
@@ -74,7 +76,7 @@ namespace TFTP {
 				continue;
 			} 
 			else if (op == OpERROR) {
-				Parse_ErrorPackets();
+				Parse_ErrorPackets(ReceivePkt);
 				return -2;
 			}
 			else if ((Now_OpCode == OpDATA|| Now_OpCode == OpWRQ) && op == OpACK) {
@@ -122,6 +124,13 @@ namespace TFTP {
 				continue;
 			}
 			ReceivePkt.setPacketLen(err);		//设置接收包长度
+
+			if (showInfo)
+			{
+				Log_Output::Log_Msg << " In WaitingForDATA :\n";
+				Parse_Print_Packet(ReceivePkt);
+			}
+
 			uint16 op = ReceivePkt.CheckPacket();	//检测接收包
 			uint16 Received_blk = ReceivePkt.ExtractBlockNo();	//获取数据块编号
 			if (op <= 0) {
@@ -130,7 +139,7 @@ namespace TFTP {
 				continue;
 			}
 			else if (op == OpERROR) {
-				Parse_ErrorPackets();
+				Parse_ErrorPackets(ReceivePkt);
 				return -2;
 			}
 			else if (op == OpDATA) {
@@ -145,10 +154,16 @@ namespace TFTP {
 	int Client_Class::Make_Connection() {
 		Connection_Infor.Begin_Time = time(NULL);
 		AssemblyRQPacket();
+		if (showInfo)
+		{
+			Log_Output::Log_Msg  << " Connection Request :\n";
+			Parse_Print_Packet(SendPkt);
+		}
 		if (BestEffort_Send()) {
-			Log_Output::OutputtoBoth(1, "Make Connection Error!");
+			Log_Output::OutputtoBoth(1, "Connection Error!");
 			return -1;
 		}
+		Log_Output::OutputtoBoth(2, "Connection Success!!!");
 		Connection_Infor.addr.sin_port = Connection_Infor.Received_addr.sin_port;
 		return 0;
 	}

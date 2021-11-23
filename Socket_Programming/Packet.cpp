@@ -105,7 +105,7 @@ namespace TFTP{
 			}
 			lenth = strlen((char*)GetByteAddr(2));
 			//对文件地址不做检查
-			TestStr = (char *)GetByteAddr(lenth+4);
+			TestStr = (char*)GetByteAddr(lenth + 3);
 			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
 			{
 				Log_Output::OutputtoBoth(1, "RRQ Packet Mode Illegal!");
@@ -119,7 +119,7 @@ namespace TFTP{
 			}
 			lenth = strlen((char*)GetByteAddr(2));
 			//对文件地址不做检查
-			TestStr = (char*)GetByteAddr(lenth + 4);
+			TestStr = (char*)GetByteAddr(lenth + 3);
 			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
 			{
 				Log_Output::OutputtoBoth(1, "WRQ Packet Mode Illegal!");
@@ -158,4 +158,47 @@ namespace TFTP{
 		}
 	}
 
+
+
+
+	int Parse_ErrorPackets(Packet ThisPacket) {
+		Log_Output::Log_Msg << " A error-packet \nCode:" << ThisPacket.ExtractErrCode();
+		if (ThisPacket.Packetlen > 4)
+			Log_Output::Log_Msg << "\nWith message:" << ThisPacket.getErrMsg();
+		Log_Output::Log_Msg << "\n";
+		Log_Output::OutputtoBoth(1, NULL);
+		return 0;
+	}
+	int Parse_Print_Packet(Packet ThisPacket) {
+		int op = ThisPacket.ExtractOpCode(), lenth;
+		switch (op) {
+		case OpRRQ:
+			lenth = strlen((char*)ThisPacket.GetByteAddr(2));
+			Log_Output::Log_Msg << " A RRQ-packet \nFile:" << ThisPacket.GetByteAddr(2) << "\nMode:" << (char*)ThisPacket.GetByteAddr(lenth + 3) << "\n";
+			Log_Output::OutputtoBoth(4, NULL);
+			return op;
+		case OpWRQ:
+			lenth = strlen((char*)ThisPacket.GetByteAddr(2));
+			Log_Output::Log_Msg << " A WRQ-packet \nFile:" << ThisPacket.GetByteAddr(2) << "\nMode:" << (char*)ThisPacket.GetByteAddr(lenth + 3) << "\n";
+			Log_Output::OutputtoBoth(4, NULL);
+			return op;
+		case OpDATA:
+			Log_Output::Log_Msg << " A DATA-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\n";
+			for (byte* i = ThisPacket.GetByteAddr(4); i < ThisPacket.buf + ThisPacket.Packetlen; ++i) {
+				Log_Output::Log_Msg << "0x" << *i << " ";
+			}
+			Log_Output::OutputtoBoth(4, NULL);
+			return op;
+		case OpACK:
+			Log_Output::Log_Msg << " A DATA-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\n";
+			Log_Output::OutputtoBoth(4, NULL);
+			return op;
+		case OpERROR:
+			Parse_ErrorPackets(ThisPacket);
+			return op;
+		default:
+			Log_Output::OutputtoBoth(1, "Packet Illegal!");
+			return -1;
+		}
+	}
 }

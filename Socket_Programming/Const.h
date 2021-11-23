@@ -3,7 +3,7 @@
 //#pragma once   //也可以起到只编译一次的作用，但是适用性要差一些
 
 
-//#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <iostream>
@@ -65,8 +65,10 @@ namespace TFTP{
 	constexpr char Log_Output_Title[][35] = {
 		"Undefined Information:","Error:","Success:","Warning:","Information:"
 	};
-	extern bool showInfo;	//是否展示传输细节标识
-	extern int SktAddrLen;	//sockaddr大小
+	//extern bool showInfo;	//是否展示传输细节标识
+	//extern int SktAddrLen;	//sockaddr大小
+	constexpr bool showInfo = true;	//是否展示传输细节标识
+	constexpr int SktAddrLen = 16;	//sockaddr大小
 }
 
 #endif

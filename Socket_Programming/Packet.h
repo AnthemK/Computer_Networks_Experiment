@@ -5,6 +5,7 @@
 #include "Log_Output.h"
 
 namespace TFTP {
+
 	class Packet {
 	public:
 		byte buf[DefBufSize];	//数据包缓冲区   1024
@@ -40,6 +41,8 @@ namespace TFTP {
 		//否则为  -1->Too Short  -2->Too Long  -3->Illegal String  -4->Illegal ErrCode  0->Unknown Opcode
 	};
 
+	int Parse_ErrorPackets(Packet ThisPacket);           //解析一个error包，并且输出
+	int Parse_Print_Packet(Packet ThisPacket);      //对一个任意包进行解析
 
 }
 

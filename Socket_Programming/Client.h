@@ -9,6 +9,7 @@
 namespace TFTP {
 
 	class Client_Class {
+	public:
 		UDPInfor Connection_Infor;       //连接的通用信息
 		Packet SendPkt, ReceivePkt;      //发送包和接受包
 		int File_DataMode;           //文件的传输类型 0 -》octet 1-》 netascii
@@ -18,7 +19,6 @@ namespace TFTP {
 		int SendPacket();       //发送一个数据包 存在SendPkt中 连接信息在Connection_Infor中
 		int RecivePacket();     //接收一个数据包 存在RecivePkt中 连接信息在Connection_Infor中,套接字信息存在Recived_addr中
 		int AssemblyRQPacket();    //组建一个R/Q型数据包      注意此处需要用到的变量都必须初始化
-		int Parse_ErrorPackets();           //解析一个error包，并且输出
 		int BestEffort_Send();         //提供一个尽力而为的发送（超时重传），只针对data包和RW请求包   把SendPkt发送到Connection_Infor.addr处
 		int WaitingForDATA();         //不断收听，等待一个数据包
 		int Make_Connection();         //建立一个连接

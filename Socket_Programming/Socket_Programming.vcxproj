@@ -145,7 +145,7 @@
     <ClCompile Include="General_Class.cpp" />
     <ClCompile Include="Log_Output.cpp" />
     <ClCompile Include="Packet.cpp" />
-    <ClCompile Include="Socket_Programming.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />

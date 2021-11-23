@@ -34,7 +34,7 @@ namespace TFTP {
 		}
 		SOCKET udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议,数据报类型
 		if (udpsocket == INVALID_SOCKET) return -2;
-		//通过WSAGetLastError取得具体的错误代码
+		//可以通过WSAGetLastError取得具体的错误代码
 		u_long imode = 1;
 		auto ret = ioctlsocket(udpsocket, FIONBIO, &imode);
 		if (ret == SOCKET_ERROR) {
@@ -48,18 +48,43 @@ namespace TFTP {
 		return true;
 	}
 
-
 	bool PrintPort(uint16 port) {
 		printf("Port: %d\n", ntohs(port));
 		return true;
 	}
 
 	bool FromsockaddrPrintIPandPort(const sockaddr_in printed_addr) {
-		printf("IP:Port  %s : %d\n", inet_ntoa(printed_addr.sin_addr), printed_addr.sin_port);
+		printf("IP:Port  %s : %d\n", inet_ntoa(printed_addr.sin_addr), ntohs(printed_addr.sin_port));
 		return true;
 	}
 
+	char* GetFileName(char* FilePath) {
+		char* TmpStr;
+		for (TmpStr = (FilePath + strlen(FilePath)); TmpStr > FilePath && (*TmpStr) != '\\'; TmpStr--);
+		if (*TmpStr == '\\')return TmpStr+1;
+		else return TmpStr;
+	}
+
+
+	int CreateFilePointer(char* FilePath, int Open_Type,FILE* &Aimfp) {
+		int errr = 0;
+		if (Open_Type == 1) {
+			errr= fopen_s(&Aimfp, FilePath, "wb");   //下载文件 因此要写
+		}
+		else if (Open_Type == 2) {
+			errr = fopen_s(&Aimfp, FilePath, "rb");   //上载文件 因此要读
+		}
+		else {
+			errr = -1;
+		}
+		if (errr) {
+			Log_Output::OutputtoBoth(1, "File open failed!");
+		}
+		return errr;
+	}
+
 	UDPInfor::UDPInfor() {
+		addr.sin_family = AF_INET;
 		addr.sin_port = htons(DefPort);
 		addr.sin_addr.S_un.S_addr = DefIp;
 		Local_Socket = getUDPSocket();
@@ -67,18 +92,24 @@ namespace TFTP {
 		FunctionType = 0;
 		FilePath[0] = 0;
 		Begin_Time = time(NULL);
+		ResendTimer = Begin_Time;
+		RemainResendNum = 0;
+		SuccessBytes = 0;
 	}
 	UDPInfor::UDPInfor(const char* ip, uint16 port) {
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
 		//adddr.sin_addr.S_un.S_addr = inet_addr(ip); 
-		int err=inet_pton(AF_INET, ip, (void*)(&addr.sin_addr.S_un.S_addr));
-		if(err!=1) addr.sin_addr.S_un.S_addr = DefIp;
+		int errr=inet_pton(AF_INET, ip, (void*)(&addr.sin_addr.S_un.S_addr));
+		if(errr!=1) addr.sin_addr.S_un.S_addr = DefIp;
 		Local_Socket = getUDPSocket();
 		Local_FilePointer = NULL;
 		FunctionType = 0;
 		FilePath[0] = 0;
 		Begin_Time = time(NULL);
+		ResendTimer = Begin_Time;
+		RemainResendNum = 0;
+		SuccessBytes = 0;
 	}
 	UDPInfor::UDPInfor(byte a, byte b, byte c, byte d, uint16 port) {
 		addr.sin_family = AF_INET;
@@ -92,13 +123,17 @@ namespace TFTP {
 		FunctionType = 0;
 		FilePath[0] = 0;
 		Begin_Time = time(NULL);
+		ResendTimer = Begin_Time;
+		RemainResendNum = 0;
+		SuccessBytes = 0;
 	}
 	uint16 UDPInfor::ChangePort(uint16 NewPort) {
-		addr.sin_port = htons(NewPort);
+		return (addr.sin_port = htons(NewPort));
 	}
-	uint16 UDPInfor::ChangeIP(const char* ip) {
-		int err = inet_pton(AF_INET, ip, (void*)(&addr.sin_addr.S_un.S_addr));
-		if (err != 1) addr.sin_addr.S_un.S_addr = DefIp;
+	uint64 UDPInfor::ChangeIP(const char* ip) {
+		int errr = inet_pton(AF_INET, ip, (void*)(&addr.sin_addr.S_un.S_addr));
+		if (errr != 1) addr.sin_addr.S_un.S_addr = DefIp;
+		return addr.sin_addr.S_un.S_addr;
 	}
 	sockaddr* UDPInfor::getSktAddr() { return (sockaddr*)&addr; }
 }
