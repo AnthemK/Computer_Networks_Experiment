@@ -32,9 +32,14 @@ namespace TFTP {
 				return -1;
 			}
 		}
-		int udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议,数据报类型
+		SOCKET udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);   //使用UDP协议,数据报类型
 		if (udpsocket == INVALID_SOCKET) return -2;
 		//通过WSAGetLastError取得具体的错误代码
+		u_long imode = 1;
+		auto ret = ioctlsocket(udpsocket, FIONBIO, &imode);
+		if (ret == SOCKET_ERROR) {
+			return -2;
+		}
 		return udpsocket;
 	}
 

@@ -55,19 +55,20 @@ namespace TFTP{
 		}
 		setPacketLen();
 		addUint16(OpRQ);
-		addChars(Filename);
+		if (Filename != NULL) addChars(Filename);
+		else addChars(""),assert(getDataLen() == 3);
 		addChars(RQMode[Modetype]);
 		return true;
 	}
-	bool Packet::PackDATA(uint16 blockNo, const char* data) {
-		if (strlen(data) > DataMaxSize) {
+	bool Packet::PackDATA(uint16 blockNo, const char* data, const int Lenth) {
+		if (Lenth > DataMaxSize) {
 			Log_Output::OutputtoBoth(1, "Data too Large!");
 			return false;
 		}
 		setPacketLen();
 		addUint16(OpDATA);
 		addUint16(blockNo);
-		addChars(data);
+		addBytes((byte* )data,Lenth);
 		return true;
 	}
 	void Packet::PackACK(uint16 blockNo) {
@@ -77,7 +78,7 @@ namespace TFTP{
 	}
 	void Packet::PackERROR(uint16 errCode, const char* msg) {
 		setPacketLen();
-		setOp(OpERROR);
+		addUint16(OpERROR);
 		addUint16(errCode);
 		if (errCode > 0 && errCode < 8) addChars(ErrMsg[errCode]);	//默认错误信息
 		else if (msg) addChars(msg);		//自定义错误信息
@@ -87,11 +88,11 @@ namespace TFTP{
 	uint16 Packet::CheckPacket() {
 		if (Packetlen < 2) {
 			Log_Output::OutputtoBoth(1,"Packet Too Short!");
-			return 0;
+			return -1;  
 		}
 		if (Packetlen > DefBufSize) {
 			Log_Output::OutputtoBoth(1, "Packet Too Long!");
-			return 0;
+			return -2;
 		}
 		uint16 op = ExtractOpCode();
 		int lenth;
@@ -100,53 +101,55 @@ namespace TFTP{
 		case OpRRQ:
 			if (Packetlen < 4) {
 				Log_Output::OutputtoBoth(1, "RRQ Packet Too Short!");
-				return 0;
+				return -1;
 			}
 			lenth = strlen((char*)GetByteAddr(2));
+			//对文件地址不做检查
 			TestStr = (char *)GetByteAddr(lenth+4);
 			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
 			{
 				Log_Output::OutputtoBoth(1, "RRQ Packet Mode Illegal!");
-				return 0;
+				return -3;
 			}
 			return op;
 		case OpWRQ:
 			if (Packetlen < 4) {
 				Log_Output::OutputtoBoth(1, "WRQ Packet Too Short!");
-				return 0;
+				return -1;
 			}
 			lenth = strlen((char*)GetByteAddr(2));
+			//对文件地址不做检查
 			TestStr = (char*)GetByteAddr(lenth + 4);
 			if (strcmp(TestStr, RQMode[0]) != 0 && strcmp(TestStr, RQMode[1]) != 0)
 			{
 				Log_Output::OutputtoBoth(1, "WRQ Packet Mode Illegal!");
-				return 0;
+				return -3;
 			}
 			return op;
 		case OpDATA:
 			if (Packetlen < 4) {
 				Log_Output::OutputtoBoth(1, "DATA Packet Too Short!");
-				return 0;
+				return -1;
 			}
 			return op;
 		case OpACK:
 			if (Packetlen < 4) {
 				Log_Output::OutputtoBoth(1, "ACK Packet Too Short!");
-				return 0;
+				return -1;
 			}
 			if (Packetlen > 4) {
 				Log_Output::OutputtoBoth(1, "ACK Packet Too Long!");
-				return 0;
+				return -2;
 			}
 			return op;
 		case OpERROR:
 			if (Packetlen < 5) {
 				Log_Output::OutputtoBoth(1, "ERR Packet Too Short!");
-				return 0;
+				return -1;
 			}
 			if (ExtractErrCode() >= 8) {
 				Log_Output::OutputtoBoth(1, "Illegal Error Code!");
-				return 0;
+				return -4;
 			}
 			return op;
 		default:

@@ -1,10 +1,10 @@
 #include "Log_Output.h"
 
 namespace TFTP {
-	ofstream Log_Output::FilePoint("log.txt", ofstream::app);	//日志文件
+	ofstream Log_Output::FilePoint("log.txt", ofstream::app);	//此处为初始化static变量   日志文件
 	ostringstream Log_Output::Log_Msg;	//输出字节流
 	char Log_Output::timeBuf[100];
-	//以上三行为初始化
+	//以上三行为初始化  分配空间
 
 	Log_Output::Log_Output() {
 		FilePoint.open("log.txt", ofstream::app);
@@ -19,7 +19,7 @@ namespace TFTP {
 		Log_Msg.clear();
 	}
 
-	void Log_Output::logNewLine() { FilePoint << endl; }
+	void Log_Output::logNewLine() { Log_Msg << endl; }
 
 	void Log_Output::GetNowTime() {
 		time_t t = time(nullptr);	//时间戳
@@ -29,10 +29,11 @@ namespace TFTP {
 	void Log_Output::ClearLogMsg() {
 		Log_Msg.str("");
 		Log_Msg.clear();
+		timeBuf[0] = 0;
 	}
 
 	const char* FindOutput_Msg(int Infor_Type) {
-		if (Infor_Type>0&& Infor_Type<5) return Log_Output_Title[Infor_Type];
+		if (Infor_Type>0 && Infor_Type<5) return Log_Output_Title[Infor_Type];
 		else return Log_Output_Title[0];
 	}
 

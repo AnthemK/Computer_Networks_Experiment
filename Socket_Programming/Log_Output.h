@@ -13,10 +13,10 @@ namespace TFTP {
 		~Log_Output();   //关闭输出流
 	public:
 		static ostringstream Log_Msg;//输出字节流
-		static void logNewLine();   //记录空行
+		static void logNewLine();   //记录空行到Log_Msg
 		static void GetNowTime();   //获得当前的时间到timeBuf数组中
-		static void ClearLogMsg();   //清空Log_Msg
-		static const char* FindOutput_Msg(int Infor_Type);          //找到当前type对应的字符串地址 [1-5]
+		static void ClearLogMsg();   //清空Log_Msg和timeBuf
+		static const char* FindOutput_Msg(int Infor_Type);          //找到当前type对应的字符串地址 [1-5]  或者 0 未定义
 
 		//输出函数当Output_Msg==NULL的时候输出字节流
 		static void OutputtoLog(const int Infor_Type,const char* Output_Msg);  //记录日志并输出到控制台
