@@ -189,7 +189,7 @@ namespace TFTP{
 			for (byte* i = ThisPacket.GetByteAddr(4); i < ThisPacket.buf + ThisPacket.Packetlen; ++i) {
 				Log_Output::Log_Msg << "0x" <<std::hex<< (int )*i << " ";
 			}
-			Log_Output::Log_Msg << '\n';
+			Log_Output::Log_Msg << std::dec << '\n';
 			Log_Output::OutputtoBoth(4, NULL);
 			return op;
 		case OpACK:

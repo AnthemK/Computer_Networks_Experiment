@@ -16,7 +16,7 @@ int main()
 {
 
 	Client_Class NewTask;
-	freopen("sample.txt", "r", stdin);
+	if(ReadInforFromConfiguration) freopen("Configuration.txt", "r", stdin);
 WrongIP:
 	scanf_s("%s", InputStr, DefBufSize);
 	NewTask.Connection_Infor.addr.sin_family = AF_INET;
@@ -28,8 +28,10 @@ WrongIP:
 	NewTask.File_DataMode = NewTask.err = NewTask.Now_BlkNO = 0;
 	NewTask.Connection_Infor.FunctionType = 1;
 WrongFIle:
+	strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认放置到
 	scanf_s("%s", NewTask.Connection_Infor.FilePath, DefBufSize);
-	CreateFilePointer(GetFileName(NewTask.Connection_Infor.FilePath),NewTask.Connection_Infor.FunctionType,NewTask.Connection_Infor.Local_FilePointer);
+	strcpy(InputStr + 8, NewTask.Connection_Infor.FilePath);
+	CreateFilePointer(InputStr,NewTask.Connection_Infor.FunctionType,NewTask.Connection_Infor.Local_FilePointer);
 	if(NewTask.Connection_Infor.FunctionType == 1){
 		NewTask.Download_File();
 	}

@@ -16,7 +16,19 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <assert.h>
+#include <sys/timeb.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 #pragma comment(lib, "ws2_32.lib")
+
+#if defined(WIN32)
+# define  TIMEB    _timeb
+# define  ftime    _ftime
+#else
+#define TIMEB timeb
+#endif
+//获取毫秒级时间用的 现在已经废弃
 
 namespace TFTP{
 	using std::cout;
@@ -30,9 +42,10 @@ namespace TFTP{
 	using uint16 = UINT16;
 	using uint = unsigned int;
 	using uint64 = unsigned long long;
+	using ll = long long;
 
 	constexpr uint DefIp = 0x0100007f;	//默认IP(127.0.0.1)，待修改
-	constexpr uint DefTimeOut = 2;		//默认超时时间
+	constexpr ll DefTimeOut = 2000;		//默认超时时间
 	constexpr uint DefRetries = 5;		//默认重传次数
 	constexpr uint DefSleepTime = 20;      //默认没过20ms查看一次套接字缓存
 	constexpr uint16 DefPort = 69;	//第一次连接的服务器端口号
@@ -67,8 +80,12 @@ namespace TFTP{
 	};
 	//extern bool showInfo;	//是否展示传输细节标识
 	//extern int SktAddrLen;	//sockaddr大小
-	constexpr bool showInfo = true;	//是否展示传输细节标识
+	constexpr bool showInfo = false;	//是否展示传输细节标识
 	constexpr int SktAddrLen = 16;	//sockaddr大小
+	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
+	constexpr bool ReadInforFromConfiguration = true;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等
+
+	long long GetCurrentmsTime();   //获取当前的时间 毫秒级
 }
 
 #endif

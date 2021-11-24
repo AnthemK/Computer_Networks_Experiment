@@ -16,14 +16,18 @@ namespace TFTP {
 		//Connection_Infor.Received_addr为接收到的数据包的套接字，不一定是目标通信方的。
 		// 其是否为目标将在此函数的父函数里判断
 		//最后一个参数表示对方套接字的大小，所以要传入地址
-		//？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？
 		//不知道是否sizeofsockaddr==sizeof(sockaddr)的时候才成立
 	}
 	int Client_Class::AssemblyRQPacket() {
 		return SendPkt.PackRQ(Connection_Infor.FunctionType, Connection_Infor.FilePath, File_DataMode);
 	}
+	int Client_Class::SendACK(int Now_BlkNo) {
+		SendPkt.PackACK(Now_BlkNo);
+		return SendPacket();
+
+	}
 	int Client_Class::BestEffort_Send() {       //待检查
-		Connection_Infor.ResendTimer = time(NULL) + DefTimeOut;  //在这个时间之后重传
+		Connection_Infor.ResendTimer = GetCurrentTime() + DefTimeOut;  //在这个时间之后重传
 		Connection_Infor.RemainResendNum = DefRetries;     //重传次数
 		uint16 Now_OpCode = SendPkt.ExtractOpCode();
 		uint16 Now_Blkno, Received_blk;
@@ -44,18 +48,18 @@ namespace TFTP {
 		while (true) {
 			err = RecivePacket();	//进行一次接收
 			if (err <= 0) {
-				if (time(nullptr) >= Connection_Infor.ResendTimer && Connection_Infor.RemainResendNum <= 0) {  //超时并且重传次数用光了
+				if (GetCurrentmsTime() >= Connection_Infor.ResendTimer && Connection_Infor.RemainResendNum <= 0) {  //超时并且重传次数用光了
 					Log_Output::OutputtoBoth(1, "Can not Recieve Response for packet!");
 					return -1;
 				}
-				else if (time(nullptr) >= Connection_Infor.ResendTimer) {   //超时了
+				else if (GetCurrentmsTime() >= Connection_Infor.ResendTimer) {   //超时了
 					err = SendPacket();
 					if (err <= 0) {
 						Log_Output::OutputtoBoth(1, "Send Packet Error!");
 						return -1;
 					}
 					Log_Output::OutputtoBoth(4, "Resend Packet!");
-					Connection_Infor.ResendTimer = time(NULL) + DefTimeOut;
+					Connection_Infor.ResendTimer = GetCurrentmsTime() + DefTimeOut;
 					Connection_Infor.RemainResendNum--;
 				}
 				Sleep(DefSleepTime);   //睡眠一会儿，等待接收
@@ -68,13 +72,11 @@ namespace TFTP {
 				Log_Output::Log_Msg << " In Best-Effort Send :\n";
 				Parse_Print_Packet(ReceivePkt);
 			}
-			//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-			//查看包的情况
 
 			uint16 op = ReceivePkt.CheckPacket();	//检测接收包，同时也获取包的op值
 			if (op <= 0) {
 				Log_Output::OutputtoBoth(3, "Recive a packet which is illegal!");
-				Connection_Infor.ResendTimer = time(NULL) + (DefTimeOut>>1);  //因为接受的包有问题，所以不能完全等同于一个正确的顺序错误的包，因此采用这种方式
+				Connection_Infor.ResendTimer = GetCurrentmsTime() + (DefTimeOut>>1);  //因为接受的包有问题，所以不能完全等同于一个正确的顺序错误的包，因此采用这种方式
 				Sleep(DefSleepTime);   //睡眠一会儿，等待接收
 				continue;
 			} 
@@ -95,7 +97,7 @@ namespace TFTP {
 					return 0;		//若为当前新的数据块则返回
 				}
 				//若为之前的数据块丢掉并重置计时器       因为此处接受的是服务器之前发送的包，这意味着想要的包很可能马上到达 所以直接重新计时
-				Connection_Infor.ResendTimer = time(NULL) + DefTimeOut;
+				Connection_Infor.ResendTimer = GetCurrentmsTime() + DefTimeOut;
 				Sleep(DefSleepTime);   //睡眠一会儿，等待接收
 				continue;
 			}
@@ -107,13 +109,13 @@ namespace TFTP {
 					return 0;		//若为当前新的数据块则返回
 				}
 				//若为之前的数据块丢掉并重置计时器
-				Connection_Infor.ResendTimer = time(NULL) + DefTimeOut;
+				Connection_Infor.ResendTimer = GetCurrentmsTime() + DefTimeOut;
 				Sleep(DefSleepTime);   //睡眠一会儿，等待接收
 				continue;
 			}
 			else {
 				Log_Output::OutputtoBoth(3, "The received packet is not what I want!");
-				Connection_Infor.ResendTimer = time(NULL) + (DefTimeOut >> 1);   //好歹也算收到包了，所以加上一半的时间
+				Connection_Infor.ResendTimer = GetCurrentmsTime() + (DefTimeOut >> 1);   //好歹也算收到包了，所以加上一半的时间
 				Sleep(DefSleepTime);   //睡眠一会儿，等待接收
 				continue;
 			}
@@ -153,13 +155,8 @@ namespace TFTP {
 			}
 		}
 	}
-	int Client_Class::SendACK(int Now_BlkNo) {
-		SendPkt.PackACK(Now_BlkNo);
-		return SendPacket();
-		
-	}
 	int Client_Class::Make_Connection() {
-		Connection_Infor.Begin_Time = time(NULL);
+		Connection_Infor.Begin_Time = GetCurrentmsTime();
 		AssemblyRQPacket();
 		if (showInfo)
 		{
@@ -184,15 +181,19 @@ namespace TFTP {
 		}
 		Now_BlkNO++;
 		char SendData[DefBufSize] = "";
-		int lenofdata = 0;
+		int lenofdata = 512;
 		while (lenofdata == 512) {
 			lenofdata = fread(SendData, 1, DataMaxSize, Connection_Infor.Local_FilePointer);
 			SendPkt.PackDATA(Now_BlkNO,SendData,lenofdata);
 			if (BestEffort_Send()) {
 				return -1;
 			}
+			cout << Now_BlkNO << "    ";
+			//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? 需要调试
 			Now_BlkNO++;
 		}
+		Log_Output::Log_Msg << "Upload Mession Success!!!\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n";
+		Log_Output::OutputtoBoth(2, NULL);
 	}
 	int Client_Class::Download_File() {
 		Now_BlkNO = 1;
@@ -219,5 +220,8 @@ namespace TFTP {
 				Now_BlkNO++;
 			}
 		}
+		Log_Output::Log_Msg << "Download Mession Success!!!\n" << "In " <<std::dec<< GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted "<< Connection_Infor.SuccessBytes  <<" Bytes\n" ;
+		Log_Output::OutputtoBoth(2, NULL);
+
 	}
 }

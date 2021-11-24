@@ -128,6 +128,16 @@ namespace TFTP {
 		RemainResendNum = 0;
 		SuccessBytes = 0;
 	}
+	UDPInfor::~UDPInfor() {
+		closesocket(Local_Socket);
+		Local_FilePointer = NULL;
+		FunctionType = 0;
+		FilePath[0] = 0;
+		Begin_Time = time(NULL);
+		ResendTimer = Begin_Time;
+		RemainResendNum = 0;
+		SuccessBytes = 0;
+	}
 	uint16 UDPInfor::ChangePort(uint16 NewPort) {
 		return (addr.sin_port = htons(NewPort));
 	}

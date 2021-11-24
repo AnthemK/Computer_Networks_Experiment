@@ -1,7 +1,7 @@
 #include "Log_Output.h"
 
 namespace TFTP {
-	ofstream Log_Output::FilePoint("log.txt", ofstream::app);	//此处为初始化static变量   日志文件
+	ofstream Log_Output::FilePoint("log.txt", (ClearLog?(ofstream::trunc):(ofstream::app)));	//此处为初始化static变量   日志文件
 	ostringstream Log_Output::Log_Msg;	//输出字节流
 	char Log_Output::timeBuf[100];
 	//以上三行为初始化  分配空间
