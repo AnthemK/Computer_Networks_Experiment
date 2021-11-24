@@ -16,20 +16,28 @@ int main()
 {
 
 	Client_Class NewTask;
-//WrongIP:
-	/*scanf_s("%s", InputStr, DefBufSize);
-	sockaddr_in addr = getSockAddr_in(InputStr, DefSvrPort);
-	if (addr.sin_addr.S_un.S_addr == INADDR_NONE) { puts("Illegal IP Address"); goto WrongIP; }
-	PrintIP(addr.sin_addr.S_un.S_addr);
-    */
+	freopen("sample.txt", "r", stdin);
+WrongIP:
+	scanf_s("%s", InputStr, DefBufSize);
+	NewTask.Connection_Infor.addr.sin_family = AF_INET;
+	NewTask.Connection_Infor.addr.sin_port = htons(DefPort);
+	//adddr.sin_addr.S_un.S_addr = inet_addr(ip); 
+	int errr = inet_pton(AF_INET, InputStr, (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
+	if (errr != 1) NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
 	FromsockaddrPrintIPandPort(NewTask.Connection_Infor.addr);
 	NewTask.File_DataMode = NewTask.err = NewTask.Now_BlkNO = 0;
 	NewTask.Connection_Infor.FunctionType = 1;
 WrongFIle:
 	scanf_s("%s", NewTask.Connection_Infor.FilePath, DefBufSize);
 	CreateFilePointer(GetFileName(NewTask.Connection_Infor.FilePath),NewTask.Connection_Infor.FunctionType,NewTask.Connection_Infor.Local_FilePointer);
-
-	NewTask.Download_File();
+	if(NewTask.Connection_Infor.FunctionType == 1){
+		NewTask.Download_File();
+	}
+	else if(NewTask.Connection_Infor.FunctionType == 2){
+		NewTask.Upload_File();
+	}
+	else
+		Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
 	//*/
 }
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

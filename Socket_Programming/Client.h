@@ -20,7 +20,8 @@ namespace TFTP {
 		int RecivePacket();     //接收一个数据包 存在RecivePkt中 连接信息在Connection_Infor中,套接字信息存在Recived_addr中
 		int AssemblyRQPacket();    //组建一个R/Q型数据包      注意此处需要用到的变量都必须初始化
 		int BestEffort_Send();         //提供一个尽力而为的发送（超时重传），只针对data包和RW请求包   把SendPkt发送到Connection_Infor.addr处
-		int WaitingForDATA();         //不断收听，等待一个数据包
+		int WaitingForDATA();         //不断收听，等待一个数据包   只保证此时是一个通过基本检测的数据包，不做其他操作
+		int SendACK(int Now_BlkNo);     //发送一个包号Now_BlkNo 的ACK包
 		int Make_Connection();         //建立一个连接
 		int Upload_File();         
 		//进行一次上载  

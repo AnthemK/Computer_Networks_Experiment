@@ -40,6 +40,7 @@ namespace TFTP {
 		if (ret == SOCKET_ERROR) {
 			return -2;
 		}
+		cout << "Init Complete" << endl;
 		return udpsocket;
 	}
 
