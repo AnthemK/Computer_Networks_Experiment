@@ -21,6 +21,8 @@
 #include <ratio>
 #include <chrono>
 #pragma comment(lib, "ws2_32.lib")
+#define outt(x)  cout<<#x<<" = "<<x<<"    "
+#define hh puts("")
 
 #if defined(WIN32)
 # define  TIMEB    _timeb
@@ -83,7 +85,7 @@ namespace TFTP{
 	constexpr bool showInfo = false;	//是否展示传输细节标识
 	constexpr int SktAddrLen = 16;	//sockaddr大小
 	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
-	constexpr bool ReadInforFromConfiguration = true;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等
+	constexpr bool ReadInforFromConfiguration = true;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
 
 	long long GetCurrentmsTime();   //获取当前的时间 毫秒级
 }
