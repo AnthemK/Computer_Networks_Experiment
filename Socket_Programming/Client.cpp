@@ -27,7 +27,7 @@ namespace TFTP {
 
 	}
 	int Client_Class::BestEffort_Send() {       //待检查
-		Connection_Infor.ResendTimer = GetCurrentTime() + DefTimeOut;  //在这个时间之后重传
+		Connection_Infor.ResendTimer = GetCurrentmsTime() + DefTimeOut;  //在这个时间之后重传
 		Connection_Infor.RemainResendNum = DefRetries;     //重传次数
 		uint16 Now_OpCode = SendPkt.ExtractOpCode();
 		uint16 Now_Blkno, Received_blk;
@@ -69,7 +69,7 @@ namespace TFTP {
 
 			if (showInfo)
 			{
-				Log_Output::Log_Msg << " In Best-Effort Send :\n";
+				Log_Output::Log_Msg << " In Best-Effort Send ,Received :\n";
 				Parse_Print_Packet(ReceivePkt);
 			}
 
@@ -89,7 +89,7 @@ namespace TFTP {
 				if (Received_blk == Now_Blkno) {
 					Connection_Infor.SuccessBytes += SendPkt.getDataLen(); //增加传输成功的字节数
 					if (Now_OpCode == OpDATA) {
-						Log_Output::OutputtoBoth(2, "DATA Packet Send Success!");
+						Log_Output::OutputtoBoth(2, "DATA Packet Send Success!");    //为了测试极限速度
 					}
 					else {
 						Log_Output::OutputtoBoth(2, "WRQ Packet Send Success!");
@@ -160,7 +160,7 @@ namespace TFTP {
 		AssemblyRQPacket();
 		if (showInfo)
 		{
-			Log_Output::Log_Msg  << " Connection Request :\n";
+			Log_Output::Log_Msg  << " Connection Request Packet:\n";
 			Parse_Print_Packet(SendPkt);
 		}
 		if (BestEffort_Send()) {
@@ -169,8 +169,9 @@ namespace TFTP {
 		}
 		Log_Output::OutputtoBoth(2, "Connection Success!!!");
 		Connection_Infor.addr.sin_port = Connection_Infor.Received_addr.sin_port;
-		cout << "Success Connection With :";
-		FromsockaddrPrintIPandPort(Connection_Infor.addr);
+		Log_Output::Log_Msg << "Success Connection With Server:\nIP: " << inet_ntoa(Connection_Infor.addr.sin_addr) << "  Port:" << ntohs(Connection_Infor.addr.sin_port) << '\n';
+		//FromsockaddrPrintIPandPort(Connection_Infor.addr);
+		Log_Output::OutputtoBoth(4, NULL);
 		return 0;
 	}
 	int Client_Class::Upload_File() {
@@ -185,11 +186,15 @@ namespace TFTP {
 		while (lenofdata == 512) {
 			lenofdata = fread(SendData, 1, DataMaxSize, Connection_Infor.Local_FilePointer);
 			SendPkt.PackDATA(Now_BlkNO,SendData,lenofdata);
+			if (showInfo)
+			{
+				Log_Output::Log_Msg << "lenofdata :\n" << lenofdata<<"\n";
+				Log_Output::Log_Msg << "Send DATA Packet :\n";
+				Parse_Print_Packet(SendPkt);
+			}
 			if (BestEffort_Send()) {
 				return -1;
 			}
-			cout << Now_BlkNO << "    ";
-			//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? 需要调试
 			Now_BlkNO++;
 		}
 		Log_Output::Log_Msg << "Upload Mession Success!!!\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n";
@@ -217,6 +222,8 @@ namespace TFTP {
 				lenofdata = fwrite((char *)ReceivePkt.GetByteAddr(4),1, ReceivePkt.getDataLen(), Connection_Infor.Local_FilePointer);
 				Connection_Infor.SuccessBytes += ReceivePkt.getDataLen(); //增加传输成功的字节数
 				SendACK(Now_BlkNO);
+				Log_Output::Log_Msg << "Download Data Blk " << Now_BlkNO <<" Success!!!\nIn " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n";
+				Log_Output::OutputtoBoth(2, NULL);
 				Now_BlkNO++;
 			}
 		}

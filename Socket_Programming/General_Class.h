@@ -13,7 +13,7 @@ namespace TFTP {
 	bool PrintPort(uint16 port);    //输出一个端口号，此端口号应当为网络字节序格式
 	bool FromsockaddrPrintIPandPort(const sockaddr_in printed_addr);          //从sockaddr输出IP地址以及端口号
 	char* GetFileName(char* FilePath);       //从文件的路径中获得文件的名字
-	int CreateFilePointer(char* FilePath,int Open_Type,FILE* &Aimfp);        //创建文件指针 通过typ指定是读还是写
+	int CreateFilePointer(char* FilePath,int Open_Type,FILE* &Aimfp);        //创建文件指针 通过typ&1指定是读(1)还是写(0)  typ&2决定是octet(0)还是netascii(2)
 	//UDP地址
 	class UDPInfor {
 	public:

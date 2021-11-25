@@ -1,9 +1,42 @@
+Success:
+[2021-11-25 11:41:25]
+WRQ Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+Connection Success!!!
 Information:
-[2021-11-25 00:02:26]
-Resend Packet!
-Information:
-[2021-11-25 00:02:28]
-Resend Packet!
-Information:
-[2021-11-25 00:02:30]
-Resend Packet!
+[2021-11-25 11:41:25]
+Success Connection With Server:
+IP: 10.12.182.13  Port:56487
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+DATA Packet Send Success!
+Success:
+[2021-11-25 11:41:25]
+Upload Mession Success!!!
+In 315 MillionSeconds
+Totally transmitted 4466 Bytes

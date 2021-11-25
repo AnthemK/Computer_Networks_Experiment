@@ -185,7 +185,7 @@ namespace TFTP{
 			Log_Output::OutputtoBoth(4, NULL);
 			return op;
 		case OpDATA:
-			Log_Output::Log_Msg << "A DATA-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\n";
+			Log_Output::Log_Msg << "A DATA-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\nLenth:"<< ThisPacket.getDataLen()<<"\n";
 			for (byte* i = ThisPacket.GetByteAddr(4); i < ThisPacket.buf + ThisPacket.Packetlen; ++i) {
 				Log_Output::Log_Msg << "0x" <<std::hex<< (int )*i << " ";
 			}
@@ -193,7 +193,7 @@ namespace TFTP{
 			Log_Output::OutputtoBoth(4, NULL);
 			return op;
 		case OpACK:
-			Log_Output::Log_Msg << "A DATA-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\n";
+			Log_Output::Log_Msg << "A ACK-packet \nBLOCK_NUMBER:" << ThisPacket.ExtractBlockNo() << "\n";
 			Log_Output::OutputtoBoth(4, NULL);
 			return op;
 		case OpERROR:

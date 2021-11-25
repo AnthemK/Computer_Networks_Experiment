@@ -12,34 +12,48 @@ const int maxn = 10000;
 
 char InputStr[maxn],SendStr[maxn];
 int err, datalen;  //err存储函数返回信息， datalen存储数据长度
-int main()
-{
 
+int InputViaConsole() {
 	Client_Class NewTask;
-	if(ReadInforFromConfiguration) freopen("Configuration.txt", "r", stdin);
+	if (ReadInforFromConfiguration) freopen("Configuration.txt", "r", stdin);   //从Configuration.txt中读入输入 否则就使用控制台
 WrongIP:
+	if(!ReadInforFromConfiguration) puts("Please Input IP:");
 	scanf_s("%s", InputStr, DefBufSize);
 	NewTask.Connection_Infor.addr.sin_family = AF_INET;
 	NewTask.Connection_Infor.addr.sin_port = htons(DefPort);
 	//adddr.sin_addr.S_un.S_addr = inet_addr(ip); 
-	int errr = inet_pton(AF_INET, InputStr, (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
-	if (errr != 1) NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
+	NewTask.err = inet_pton(AF_INET, InputStr, (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
+	if (NewTask.err != 1) NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
+	else { Log_Output::OutputtoBoth(2, "Wrong IP!!!");  goto WrongIP; }
 	FromsockaddrPrintIPandPort(NewTask.Connection_Infor.addr);
-	NewTask.File_DataMode = NewTask.err = NewTask.Now_BlkNO = 0;
-	NewTask.Connection_Infor.FunctionType = 1;
-WrongFIle:
-	strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认放置到
+	if (!ReadInforFromConfiguration) puts("Please Input File DataMode(0->octet,1->netascii):");
+	scanf("%d", &NewTask.File_DataMode);
+	//NewTask.File_DataMode = 1;
+	NewTask.err = NewTask.Now_BlkNO = 0;
+	NewTask.Connection_Infor.FunctionType = -1;  //默认未定义的代码
+	if (!ReadInforFromConfiguration) puts("Please Input Client Work Mode(1->Download ,2->Upload):");
+	scanf("%d", &NewTask.Connection_Infor.FunctionType);
+WrongFile:
+	strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认是NewTask.Connection_Infor.FilePath文件
+	if (!ReadInforFromConfiguration) puts("Please Input File Path:");
 	scanf_s("%s", NewTask.Connection_Infor.FilePath, DefBufSize);
 	strcpy(InputStr + 8, NewTask.Connection_Infor.FilePath);
-	CreateFilePointer(InputStr,NewTask.Connection_Infor.FunctionType,NewTask.Connection_Infor.Local_FilePointer);
-	if(NewTask.Connection_Infor.FunctionType == 1){
+	NewTask.err = CreateFilePointer(InputStr, (((NewTask.Connection_Infor.FunctionType - 1) ? 1 : 0) | (NewTask.File_DataMode ? 2 : 0)), NewTask.Connection_Infor.Local_FilePointer);//NewTask.Connection_Infor.FunctionType-1是为了压位
+	if (NewTask.err) { Log_Output::OutputtoBoth(2, "Wrong FileName!!!");  goto WrongFile; }
+	if (NewTask.Connection_Infor.FunctionType == 1) {
 		NewTask.Download_File();
 	}
-	else if(NewTask.Connection_Infor.FunctionType == 2){
+	else if (NewTask.Connection_Infor.FunctionType == 2) {
 		NewTask.Upload_File();
 	}
-	else
-		Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
+	else Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
+	return;
+}
+
+int main()
+{
+	InputViaConsole();  //通过Console执行程序
+
 	//*/
 }
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

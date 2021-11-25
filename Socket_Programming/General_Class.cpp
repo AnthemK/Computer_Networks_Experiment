@@ -68,15 +68,15 @@ namespace TFTP {
 
 
 	int CreateFilePointer(char* FilePath, int Open_Type,FILE* &Aimfp) {
+		cout << "When CreateFile Pointer ,Open_Type = " << Open_Type << endl;
 		int errr = 0;
-		if (Open_Type == 1) {
-			errr= fopen_s(&Aimfp, FilePath, "wb");   //下载文件 因此要写
+		if ((Open_Type & 1) == 0) { //下载文件 因此要写
+			if(Open_Type & 2) errr = fopen_s(&Aimfp, FilePath, "w");  
+			else errr = fopen_s(&Aimfp, FilePath, "wb");
 		}
-		else if (Open_Type == 2) {
-			errr = fopen_s(&Aimfp, FilePath, "rb");   //上载文件 因此要读
-		}
-		else {
-			errr = -1;
+		else if ((Open_Type&1) == 1) {
+			if (Open_Type & 2) errr = fopen_s(&Aimfp, FilePath, "r");
+			else errr = fopen_s(&Aimfp, FilePath, "rb");
 		}
 		if (errr) {
 			Log_Output::OutputtoBoth(1, "File open failed!");
