@@ -26,6 +26,8 @@ namespace TFTP {
 		long long ResendTimer;         //重传计时器
 		int RemainResendNum;       //剩余的重传次数
 		int SuccessBytes;          //已经传输成功的字节数，ACK后才会被计算
+		int SuccessPacketNum;      //传输成功的数据包数
+		int TotPacketNum;         //总共传输的数据包数
 		sockaddr_in Received_addr;     //接收包的sockaddr  初始时悬空？
 
 

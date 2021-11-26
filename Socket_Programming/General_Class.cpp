@@ -40,7 +40,7 @@ namespace TFTP {
 		if (ret == SOCKET_ERROR) {
 			return -2;
 		}
-		cout << "Init Complete" << endl;
+		// cout << "Init Complete" << endl;  先不输出
 		return udpsocket;
 	}
 
@@ -68,7 +68,26 @@ namespace TFTP {
 
 
 	int CreateFilePointer(char* FilePath, int Open_Type,FILE* &Aimfp) {
-		cout << "When CreateFile Pointer ,Open_Type = " << Open_Type << endl;
+		if (EchoInputPara) {
+			cout << "When CreateFile Pointer ,Open_Type = " << Open_Type<< " Which means:";
+			switch (Open_Type) {
+				case 0:
+					cout << "Write File in octet mode" << endl;
+					break;
+				case 1: 
+					cout << "Read File in octet mode" << endl;
+					break;
+				case 2:
+					cout << "Write File in netascii mode" << endl;
+					break;
+				case 3:
+					cout << "Read File in netascii mode" << endl;
+					break;
+				default:
+					cout << "Error " << endl;
+					break;
+			}
+		}
 		int errr = 0;
 		if ((Open_Type & 1) == 0) { //下载文件 因此要写
 			if(Open_Type & 2) errr = fopen_s(&Aimfp, FilePath, "w");  
@@ -96,6 +115,8 @@ namespace TFTP {
 		ResendTimer = Begin_Time;
 		RemainResendNum = 0;
 		SuccessBytes = 0;
+		SuccessPacketNum = 0;
+		TotPacketNum = 0;
 	}
 	UDPInfor::UDPInfor(const char* ip, uint16 port) {
 		addr.sin_family = AF_INET;
@@ -111,6 +132,8 @@ namespace TFTP {
 		ResendTimer = Begin_Time;
 		RemainResendNum = 0;
 		SuccessBytes = 0;
+		SuccessPacketNum = 0;
+		TotPacketNum = 0;
 	}
 	UDPInfor::UDPInfor(byte a, byte b, byte c, byte d, uint16 port) {
 		addr.sin_family = AF_INET;
@@ -127,6 +150,8 @@ namespace TFTP {
 		ResendTimer = Begin_Time;
 		RemainResendNum = 0;
 		SuccessBytes = 0;
+		SuccessPacketNum = 0;
+		TotPacketNum = 0;
 	}
 	UDPInfor::~UDPInfor() {
 		closesocket(Local_Socket);
@@ -137,6 +162,8 @@ namespace TFTP {
 		ResendTimer = Begin_Time;
 		RemainResendNum = 0;
 		SuccessBytes = 0;
+		SuccessPacketNum = 0;
+		TotPacketNum = 0;
 	}
 	uint16 UDPInfor::ChangePort(uint16 NewPort) {
 		return (addr.sin_port = htons(NewPort));

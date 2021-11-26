@@ -47,9 +47,9 @@ namespace TFTP{
 	using ll = long long;
 
 	constexpr uint DefIp = 0x0100007f;	//默认IP(127.0.0.1)，待修改
-	constexpr ll DefTimeOut = 2000;		//默认超时时间
-	constexpr uint DefRetries = 5;		//默认重传次数
-	constexpr uint DefSleepTime = 20;      //默认没过20ms查看一次套接字缓存
+	constexpr ll DefTimeOut = 200;		//默认超时时间
+	constexpr uint DefRetries = 6;		//默认重传次数
+	constexpr uint DefSleepTime = 10;      //默认没过20ms查看一次套接字缓存
 	constexpr uint16 DefPort = 69;	//第一次连接的服务器端口号
 	constexpr uint16 OpRRQ = 1;			//读请求操作码
 	constexpr uint16 OpWRQ = 2;			//写请求操作码
@@ -82,10 +82,12 @@ namespace TFTP{
 	};
 	//extern bool showInfo;	//是否展示传输细节标识
 	//extern int SktAddrLen;	//sockaddr大小
-	constexpr bool showInfo = false;	//是否展示传输细节标识
-	constexpr int SktAddrLen = 16;	//sockaddr大小
 	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
 	constexpr bool ReadInforFromConfiguration = true;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
+	extern bool showInfo;	//是否展示传输细节标识
+	extern int SktAddrLen;	//sockaddr大小
+	extern bool EchoInputPara;   //是否回显输入参数
+
 
 	long long GetCurrentmsTime();   //获取当前的时间 毫秒级
 }
