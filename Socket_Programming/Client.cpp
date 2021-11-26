@@ -91,6 +91,7 @@ namespace TFTP {
 				if (Received_blk == Now_Blkno) {
 					Connection_Infor.SuccessBytes += SendPkt.getDataLen(); //增加传输成功的字节数
 					if (Now_OpCode == OpDATA) {
+						Log_Output::Log_Msg << "DATA Packet Blk" << Now_Blkno << "Send Success!";
 						Log_Output::OutputtoBoth(2, "DATA Packet Send Success!");    //为了测试极限速度
 					}
 					else {

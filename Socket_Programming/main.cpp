@@ -34,14 +34,14 @@ int InputViaConsole() {
 	Client_Class NewTask[105];
 	HANDLE Threads[105];
 	if (ReadInforFromConfiguration) freopen("Configuration.txt", "r", stdin);   //从Configuration.txt中读入输入 否则就使用控制台
-	if (!ReadInforFromConfiguration) puts("Please Choose if show details:");
+	if (!ReadInforFromConfiguration) puts("Please Choose if show details(0 or 1):");
 	scanf("%d", &NumofThread);
 	showInfo = NumofThread ? 1 : 0;
-	if (EchoInputPara) outt(showInfo);
+	if (EchoInputPara) outt(showInfo),hh;
 WrongThreadNum:
-	if (!ReadInforFromConfiguration) puts("Please Input Number of Thread(no more than 100):");
+	if (!ReadInforFromConfiguration) puts("Please Input Number of Thread(no more than 100 and no less than 1):");
 	scanf("%d", &NumofThread);
-	if (EchoInputPara) outt(NumofThread);
+	if (EchoInputPara) outt(NumofThread),hh;
 	if (NumofThread < 1 || NumofThread>100) {goto WrongThreadNum;}
 
 
@@ -91,9 +91,10 @@ WrongThreadNum:
 			}
 			else Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
 		}
-		else Threads[i]=(HANDLE)_beginthreadex(NULL,0,BeginMultiThread,(void *)(&NewTask[i]),0,NULL);
 	}
-
+	puts("Press Enter to Start");
+	system("pause");
+	for(int i=1;i<=NumofThread;++i) Threads[i] = (HANDLE)_beginthreadex(NULL, 0, BeginMultiThread, (void*)(&NewTask[i]), 0, NULL);
 	for (int i = 1; i <= NumofThread; ++i) if(Threads[i]!=NULL)WaitForSingleObject(Threads[i],INFINITE);  //等待所有正确建立的线程运行结束
 	return 0;
 }
@@ -102,14 +103,15 @@ WrongThreadNum:
 
 int InputViaAnyOption(int argc, char* argv[]) {
 	AnyOption* opt = new AnyOption();
-	Client_Class NewTask[105];
+	Client_Class NewTask;
 	int NumofThread;
 	//opt->setVerbose();   /* print warnings about unknown options */
 	//opt->autoUsagePrint(true);   /* print usage for bad options */
-	opt->addUsage("Help: Socket_Programming [-t <Number of thread>]-i <serverip> -u|d <filepath> [-m <mode>] [-s]");
+	//opt->addUsage("Help: Socket_Programming [-t <Number of thread>] -i <serverip> -u|d <filepath> [-m <mode>] [-s]");
+	opt->addUsage("Help: Socket_Programming -i <serverip> -u|d <filepath> [-m <mode>] [-s]");
 	opt->addUsage("");
 	opt->addUsage("    -h  --help      Print usage information and exit");
-	opt->addUsage("    -t  --thread    Figure out how many thread you want to use.Default is 1,and no more than 100");
+	//opt->addUsage("    -t  --thread    Figure out how many thread you want to use.Default is 1,and no more than 100");
 	opt->addUsage("    -i  --ip        Server ip address xxx.xxx.xxx.xxx ,the number of parameter should fit the number of thread ");
 	opt->addUsage("    -u  --upload    Upload file to server,the number of parameter should fit the number of thread ");
 	opt->addUsage("    -d  --download  Download file from server,the number of parameter should fit the number of thread ");
@@ -118,7 +120,7 @@ int InputViaAnyOption(int argc, char* argv[]) {
 	opt->addUsage("");
 
 	opt->setFlag("help", 'h');
-	opt->setOption("thread", 't');
+	//opt->setOption("thread", 't');
 	opt->setOption("ip", 'i');
 	opt->setOption("upload", 'u');
 	opt->setOption("download", 'd');
@@ -126,32 +128,106 @@ int InputViaAnyOption(int argc, char* argv[]) {
 	opt->setFlag("show", 's');
 
 	opt->processCommandArgs(argc, argv);
+
 	if (!opt->hasOptions() || opt->getFlag('h') || opt->getFlag("help")) { /* print usage if no options */
 		opt->printUsage();
 		delete opt;
 		return 0;
 	}
-	if (opt->getValue('t') || opt->getValue("thread")) {
-		NumofThread = atoi(opt->getValue('t'));
-		cout << "thread = " << opt->getValue('t') <<"              "<<NumofThread << endl;
+
+	if (opt->getValue('i') || opt->getValue("ip")) {
+		NewTask.Connection_Infor.addr.sin_family = AF_INET;
+		NewTask.Connection_Infor.addr.sin_port = htons(DefPort);
+		//adddr.sin_addr.S_un.S_addr = inet_addr(ip); 
+		if (opt->getValue('i')) NewTask.err = inet_pton(AF_INET, opt->getValue("i"), (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
+		else  NewTask.err = inet_pton(AF_INET, opt->getValue("ip"), (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
+		if (NewTask.err != 1) NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
 	}
-	else NumofThread = 1;
-	NewTask[0].File_DataMode = 0;
+	else {
+		puts("Error ip");
+		opt->printUsage();
+		return 0;
+	}
+		if (EchoInputPara) FromsockaddrPrintIPandPort(NewTask.Connection_Infor.addr);
+
+	NewTask.err = NewTask.Now_BlkNO = 0;
+	NewTask.Connection_Infor.FunctionType = -1;  //默认未定义的代码
+
+	if (opt->getValue('m') || opt->getValue("mode")) {
+		if (opt->getValue('m')) {
+			strcpy(InputStr, opt->getValue('m'));
+		}
+		else strcpy(InputStr, opt->getValue("mode"));
+		if (!strcmp(InputStr, "t")) strcpy(InputStr, "netascii");
+		else if (!strcmp(InputStr, "b")) strcpy(InputStr, "octet");
+		if (strcmp(InputStr, "netascii") && strcmp(InputStr, "octet")) {
+			puts("Error Mode");
+			opt->printUsage();
+			return 0;
+		}
+	}
+	else strcpy(InputStr, "octet");
+	NewTask.File_DataMode = strcmp(InputStr, "octet") ? 1 : 0;
+		if (EchoInputPara) outt(NewTask.File_DataMode), hh;
+
+	strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认是NewTask.Connection_Infor.FilePath文件
+	if ((opt->getValue('u') || opt->getValue("upload"))
+		&& (opt->getValue('d') || opt->getValue("download"))) {
+		puts("Conflicting Work Type");
+		opt->printUsage();
+		return 0;
+	}
+	else if (opt->getValue('u') || opt->getValue("upload")) {
+		NewTask.Connection_Infor.FunctionType=2;
+		if (opt->getValue('u')) strcpy(NewTask.Connection_Infor.FilePath, opt->getValue('u'));
+		else strcpy(NewTask.Connection_Infor.FilePath, opt->getValue("upload"));
+	}
+	else if (opt->getValue('d') || opt->getValue("download")) {
+		NewTask.Connection_Infor.FunctionType = 1;
+		if (opt->getValue('d')) strcpy(NewTask.Connection_Infor.FilePath, opt->getValue('d'));
+		else strcpy(NewTask.Connection_Infor.FilePath, opt->getValue("download"));
+	}
+	else {
+		puts("Error Work Type");
+		opt->printUsage();
+		return 0;
+	}
+		if (EchoInputPara) outt(NewTask.Connection_Infor.FunctionType), hh;
+		if (EchoInputPara) outt(NewTask.Connection_Infor.FilePath),hh;
+	strcpy(InputStr + 8, NewTask.Connection_Infor.FilePath);
+	NewTask.err = CreateFilePointer(InputStr, (((NewTask.Connection_Infor.FunctionType - 1) ? 1 : 0) | (NewTask.File_DataMode ? 2 : 0)), NewTask.Connection_Infor.Local_FilePointer);
+
+	if (opt->getFlag('s') || opt->getFlag("show"))
+	TFTP::showInfo = true;
+		if (EchoInputPara) outt(TFTP::showInfo), hh;
+	puts("Press Enter to Start");
+	system("pause");
+	if (NewTask.Connection_Infor.FunctionType == 1) {
+		NewTask.Download_File();
+		//_endthreadex
+	}
+	else if (NewTask.Connection_Infor.FunctionType == 2) {
+		NewTask.Upload_File();
+	}
 
 	delete opt;
 	return 0;
 }
 
 
-
-
 int main(int argc, char* argv[])
 {
 	ll Start_time = GetCurrentmsTime();
-	InputViaConsole();  //通过Console执行程序
-	//InputViaAnyOption(argc,argv);
+	switch (ProcessWorkType) {
+		case 0:
+			InputViaConsole();
+			break;
+		case 1:
+			InputViaAnyOption(argc, argv);
+			break;
+	}
 	//*/
-	Log_Output::Log_Msg << "TOT Time used for all thread: " << (double )(GetCurrentmsTime() - Start_time)/1000.0 << " ms";
+	Log_Output::Log_Msg << "TOT Time used for The Whole Process: " << (double )(GetCurrentmsTime() - Start_time)/1000.0 << " s";
 	Log_Output::OutputtoBoth(2, NULL);
 	return 0;
 }
