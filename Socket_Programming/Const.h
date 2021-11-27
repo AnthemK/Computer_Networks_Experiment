@@ -80,9 +80,9 @@ namespace TFTP{
 	constexpr char Log_Output_Title[][35] = {
 		"Undefined Information:","Error:","Success:","Warning:","Information:"
 	};
-	constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式
+	//constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式
 	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
-	constexpr bool ReadInforFromConfiguration = false;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
+	extern bool ReadInforFromConfiguration;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
 	extern bool showInfo;	//是否展示传输细节标识
 	extern int SktAddrLen;	//sockaddr大小
 	extern bool EchoInputPara;   //是否回显输入参数

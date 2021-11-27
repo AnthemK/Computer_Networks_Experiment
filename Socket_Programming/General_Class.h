@@ -30,7 +30,6 @@ namespace TFTP {
 		int TotPacketNum;         //总共传输的数据包数
 		sockaddr_in Received_addr;     //接收包的sockaddr  初始时悬空？
 
-
 		UDPInfor();
 		UDPInfor(const char* ip, uint16 port);   //从一个字符串初始化IP地址以及端口号
 		UDPInfor(byte a, byte b, byte c, byte d, uint16 port);  //从四个byte初始化IP 地址 以及端口号

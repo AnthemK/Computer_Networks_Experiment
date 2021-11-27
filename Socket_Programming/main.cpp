@@ -33,6 +33,22 @@ unsigned int __stdcall BeginMultiThread(void* Para) {
 int InputViaConsole() {
 	Client_Class NewTask[105];
 	HANDLE Threads[105];
+	char YorN;
+WrongReadPrametersMode:
+	puts("If you wish to input parameters from Configuration.txt ?(Y/y/1 or N/n/0)");
+	YorN=getchar();
+	if (YorN == 'Y' || YorN == 'y' || YorN == '1')
+	{
+		ReadInforFromConfiguration = 1;
+	}
+	else if (YorN == 'N' || YorN == 'n' || YorN == '0') {
+		ReadInforFromConfiguration = 0;
+	}
+	else {
+		puts("Wrong Input Parameters Mode");
+		goto WrongReadPrametersMode;
+	}
+
 	if (ReadInforFromConfiguration) freopen("Configuration.txt", "r", stdin);   //从Configuration.txt中读入输入 否则就使用控制台
 	if (!ReadInforFromConfiguration) puts("Please Choose if show details(0 or 1):");
 	scanf("%d", &NumofThread);
@@ -60,19 +76,25 @@ WrongThreadNum:
 		if (NewTask[i].err != 1) NewTask[i].Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
 		if (EchoInputPara) FromsockaddrPrintIPandPort(NewTask[i].Connection_Infor.addr);
 
-		if (!ReadInforFromConfiguration) printf("Please Input File DataMode(0->octet,1->netascii) for thread %d:",i);
+		if (!ReadInforFromConfiguration) printf("Please Input File DataMode(0->octet,1->netascii)(default octet) for thread %d:",i);
 		scanf("%d", &NewTask[i].File_DataMode);
 		if (EchoInputPara) outt(NewTask[i].File_DataMode),hh;
 		//NewTask.File_DataMode = 1;
 		NewTask[i].err = NewTask[i].Now_BlkNO = 0;
 
+	WrongWorkMode:
 		NewTask[i].Connection_Infor.FunctionType = -1;  //默认未定义的代码
 		if (!ReadInforFromConfiguration) printf("Please Input Client Work Mode(1->Download ,2->Upload) for thread %d:",i);
 		scanf("%d", &NewTask[i].Connection_Infor.FunctionType);
+		if (NewTask[i].Connection_Infor.FunctionType != 1 && NewTask[i].Connection_Infor.FunctionType != 2) {
+			puts("Wrong Work Mode");
+			goto WrongWorkMode;
+		}
 		if (EchoInputPara) outt(NewTask[i].Connection_Infor.FunctionType),hh;
+
 	WrongFile:
 		strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认是NewTask.Connection_Infor.FilePath文件
-		if (!ReadInforFromConfiguration) printf("Please Input File Path for thread %d:",i);
+		if (!ReadInforFromConfiguration) printf("Please Input File Path for thread %d (Local File will be inside .\Files\):",i);
 		scanf_s("%s", NewTask[i].Connection_Infor.FilePath, DefBufSize);
 		if (EchoInputPara) outt(NewTask[i].Connection_Infor.FilePath),hh;
 		strcpy(InputStr + 8, NewTask[i].Connection_Infor.FilePath);
@@ -108,15 +130,19 @@ int InputViaAnyOption(int argc, char* argv[]) {
 	//opt->setVerbose();   /* print warnings about unknown options */
 	//opt->autoUsagePrint(true);   /* print usage for bad options */
 	//opt->addUsage("Help: Socket_Programming [-t <Number of thread>] -i <serverip> -u|d <filepath> [-m <mode>] [-s]");
-	opt->addUsage("Help: Socket_Programming -i <serverip> -u|d <filepath> [-m <mode>] [-s]");
+	opt->addUsage("Help: ");
+	opt->addUsage("    If you wish to use multithreaded transmission ,please use the console method.");
+	opt->addUsage("    In order to use this method please run the program without entering any parameters.And follow the instructions");
 	opt->addUsage("");
+	opt->addUsage("    Otherwise,please enter the parameters according to the following BNF");
+	opt->addUsage("    Socket_Programming.exe - i <serverip> -u|d <filepath> [-m <mode>] [-s]");
 	opt->addUsage("    -h  --help      Print usage information and exit");
 	//opt->addUsage("    -t  --thread    Figure out how many thread you want to use.Default is 1,and no more than 100");
-	opt->addUsage("    -i  --ip        Server ip address xxx.xxx.xxx.xxx ,the number of parameter should fit the number of thread ");
-	opt->addUsage("    -u  --upload    Upload file to server,the number of parameter should fit the number of thread ");
-	opt->addUsage("    -d  --download  Download file from server,the number of parameter should fit the number of thread ");
+	opt->addUsage("    -i  --ip        Server ip address xxx.xxx.xxx.xxx xxx in [0,255] ");
+	opt->addUsage("    -u  --upload    Upload file to server ,follows the file name");
+	opt->addUsage("    -d  --download  Download file from server ,follows the file name");
 	opt->addUsage("    -m  --mode      TFTP modes of transfer: octet(b) or netascii(t).Default is octet");
-	opt->addUsage("    -s  --show      Show detail about packet");
+	opt->addUsage("    -s  --show      Show detail about packet Default is false");
 	opt->addUsage("");
 
 	opt->setFlag("help", 'h');
@@ -139,7 +165,7 @@ int InputViaAnyOption(int argc, char* argv[]) {
 		NewTask.Connection_Infor.addr.sin_family = AF_INET;
 		NewTask.Connection_Infor.addr.sin_port = htons(DefPort);
 		//adddr.sin_addr.S_un.S_addr = inet_addr(ip); 
-		if (opt->getValue('i')) NewTask.err = inet_pton(AF_INET, opt->getValue("i"), (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
+		if (opt->getValue('i')) NewTask.err = inet_pton(AF_INET, opt->getValue('i'), (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
 		else  NewTask.err = inet_pton(AF_INET, opt->getValue("ip"), (void*)(&NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr));
 		if (NewTask.err != 1) NewTask.Connection_Infor.addr.sin_addr.S_un.S_addr = DefIp;
 	}
@@ -158,16 +184,16 @@ int InputViaAnyOption(int argc, char* argv[]) {
 			strcpy(InputStr, opt->getValue('m'));
 		}
 		else strcpy(InputStr, opt->getValue("mode"));
-		if (!strcmp(InputStr, "t")) strcpy(InputStr, "netascii");
-		else if (!strcmp(InputStr, "b")) strcpy(InputStr, "octet");
-		if (strcmp(InputStr, "netascii") && strcmp(InputStr, "octet")) {
+		if (!strcmp(InputStr, "t")) strcpy(InputStr, RQMode[1]);
+		else if (!strcmp(InputStr, "b")) strcpy(InputStr, RQMode[0]);
+		if (strcmp(InputStr, RQMode[1]) && strcmp(InputStr, RQMode[0])) {
 			puts("Error Mode");
 			opt->printUsage();
 			return 0;
 		}
 	}
-	else strcpy(InputStr, "octet");
-	NewTask.File_DataMode = strcmp(InputStr, "octet") ? 1 : 0;
+	else strcpy(InputStr, RQMode[0]);
+	NewTask.File_DataMode = strcmp(InputStr, RQMode[1]) ? 0 : 1;
 		if (EchoInputPara) outt(NewTask.File_DataMode), hh;
 
 	strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认是NewTask.Connection_Infor.FilePath文件
@@ -218,11 +244,11 @@ int InputViaAnyOption(int argc, char* argv[]) {
 int main(int argc, char* argv[])
 {
 	ll Start_time = GetCurrentmsTime();
-	switch (ProcessWorkType) {
-		case 0:
+	switch (argc) {
+		case 1:
 			InputViaConsole();
 			break;
-		case 1:
+		default:
 			InputViaAnyOption(argc, argv);
 			break;
 	}
@@ -231,14 +257,3 @@ int main(int argc, char* argv[])
 	Log_Output::OutputtoBoth(2, NULL);
 	return 0;
 }
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
-
-// 入门使用技巧: 
-//   1. 使用解决方案资源管理器窗口添加/管理文件
-//   2. 使用团队资源管理器窗口连接到源代码管理
-//   3. 使用输出窗口查看生成输出和其他消息
-//   4. 使用错误列表窗口查看错误
-//   5. 转到“项目”>“添加新项”以创建新的代码文件，或转到“项目”>“添加现有项”以将现有代码文件添加到项目
-//   6. 将来，若要再次打开此项目，请转到“文件”>“打开”>“项目”并选择 .sln 文件
-//  HUST CSE Computer Networks Experiment
