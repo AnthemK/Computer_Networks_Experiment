@@ -40,13 +40,13 @@ namespace TFTP{
 	using std::ifstream;
 	using std::ofstream;
 	using std::ostringstream;
-	using byte = unsigned char;   //单独的Byte
+	using byte = unsigned char;   
 	using uint16 = UINT16;
 	using uint = unsigned int;
 	using uint64 = unsigned long long;
 	using ll = long long;
 
-	constexpr uint DefIp = 0x0100007f;	//默认IP(127.0.0.1)，待修改
+	constexpr uint DefIp = 0x0100007f;	//默认IP(127.0.0.1)
 	constexpr ll DefTimeOut = 200;		//默认超时时间
 	constexpr uint DefRetries = 6;		//默认重传次数
 	constexpr uint DefSleepTime = 10;      //默认没过20ms查看一次套接字缓存
@@ -76,11 +76,11 @@ namespace TFTP{
 		"底层网络子系统没有准备好。","Winsock 版本信息号不支持。","阻塞式 Winsock1.1 存在于进程中。",
 		"已经达到 Winsock 使用量的上限。","lpWSAData 不是一个有效的指针"
 	};
-	//输出日志的5中Title
+	//输出日志的5种Title
 	constexpr char Log_Output_Title[][35] = {
 		"Undefined Information:","Error:","Success:","Warning:","Information:"
 	};
-	//constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式  已废弃
+	//constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式    已废弃
 	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
 	extern bool ReadInforFromConfiguration;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
 	extern bool showInfo;	//是否展示传输细节标识

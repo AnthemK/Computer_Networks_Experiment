@@ -5,7 +5,7 @@
 namespace TFTP {
 
 	class Log_Output {
-		//日志文件
+		//日志文件，没有做线程锁，可能会出问题
 		static ofstream FilePoint;    //输出流
 		static char timeBuf[100];        //获取时间之后得到的字符串
 		Log_Output();   //初始化输出流的地址，清空字节流

@@ -160,13 +160,13 @@ namespace TFTP {
 	}
 	int Client_Class::Make_Connection() {  //建立连接
 		Connection_Infor.Begin_Time = GetCurrentmsTime();
-		AssemblyRQPacket();
+		AssemblyRQPacket();    //根据需要封包
 		if (showInfo)
 		{
 			Log_Output::Log_Msg  << " Connection Request Packet:\n";
 			Parse_Print_Packet(SendPkt);
 		}
-		if (BestEffort_Send()) {
+		if (BestEffort_Send()) {    //进行一次尽力而为的发送，如果成功
 			Log_Output::OutputtoBoth(1, "Connection Error!");
 			return -1;
 		}
@@ -183,15 +183,16 @@ namespace TFTP {
 		Connection_Infor.SuccessBytes = 0;
 		Connection_Infor.SuccessPacketNum = 0;
 		Connection_Infor.TotPacketNum = 0;
-		if (Make_Connection()) {
+		//初始化本次连接的统计数据
+		if (Make_Connection()) {  //尝试进行连接
 			return -1;
 		}
 		Now_BlkNO++;
 		char SendData[DefBufSize] = "";
 		int lenofdata = 512;
-		while (lenofdata == 512) {
+		while (lenofdata == 512) {   //根据TFTP要求，小于512即为结束
 			lenofdata = fread(SendData, 1, DataMaxSize, Connection_Infor.Local_FilePointer);
-			SendPkt.PackDATA(Now_BlkNO,SendData,lenofdata);
+			SendPkt.PackDATA(Now_BlkNO,SendData,lenofdata);   //封装DATA包
 			if (showInfo)
 			{
 				Log_Output::Log_Msg << "lenofdata :\n" << lenofdata<<"\n";
@@ -201,7 +202,6 @@ namespace TFTP {
 			if (BestEffort_Send()) {
 				return -1;
 			}
-
 			Connection_Infor.SuccessPacketNum++;
 			Now_BlkNO++;
 		}
@@ -213,6 +213,7 @@ namespace TFTP {
 		Connection_Infor.SuccessBytes = 0;
 		Connection_Infor.SuccessPacketNum = 0;
 		Connection_Infor.TotPacketNum = 0;
+		//初始化本次连接的统计数据
 		if (Make_Connection()) {
 			return -1;
 		}
@@ -223,12 +224,12 @@ namespace TFTP {
 			Now_BlkNO++;
 		}
 		SendACK(ReceivePkt.ExtractBlockNo());
-		while (ReceivePkt.getDataLen() == 512) {
+		while (ReceivePkt.getDataLen() == 512) {   //根据TFTP要求，小于512即为结束
 			if (WaitingForDATA()) {
 				return -1;
 			}
 			SendPkt.PackACK(ReceivePkt.ExtractBlockNo());
-			if (ReceivePkt.ExtractBlockNo() == Now_BlkNO) {
+			if (ReceivePkt.ExtractBlockNo() == Now_BlkNO) {   //注意此处，如过不符合则不进行统计和文件写入，但是仍然要发送ACK
 				lenofdata = fwrite((char *)ReceivePkt.GetByteAddr(4),1, ReceivePkt.getDataLen(), Connection_Infor.Local_FilePointer);
 				Connection_Infor.SuccessBytes += ReceivePkt.getDataLen(); //增加传输成功的字节数
 				Log_Output::Log_Msg << "Download Data Blk " << Now_BlkNO << " Success!!!\n";
