@@ -40,7 +40,7 @@ namespace TFTP{
 	using std::ifstream;
 	using std::ofstream;
 	using std::ostringstream;
-	using byte = unsigned char;
+	using byte = unsigned char;   //单独的Byte
 	using uint16 = UINT16;
 	using uint = unsigned int;
 	using uint64 = unsigned long long;
@@ -80,7 +80,7 @@ namespace TFTP{
 	constexpr char Log_Output_Title[][35] = {
 		"Undefined Information:","Error:","Success:","Warning:","Information:"
 	};
-	//constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式
+	//constexpr int ProcessWorkType = 0;      //整个进程的工作模式 0->控制台模式 1->命令行模式  已废弃
 	constexpr bool ClearLog = true;      //是否在初始化时清空Log文件
 	extern bool ReadInforFromConfiguration;       //是否直接从配置文件中读取IP地址，下载模式、文件名等等  只有在Console模式才生效，当为true时，不会输出提示信息
 	extern bool showInfo;	//是否展示传输细节标识

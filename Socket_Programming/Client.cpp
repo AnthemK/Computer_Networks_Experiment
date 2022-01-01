@@ -158,7 +158,7 @@ namespace TFTP {
 			}
 		}
 	}
-	int Client_Class::Make_Connection() {
+	int Client_Class::Make_Connection() {  //建立连接
 		Connection_Infor.Begin_Time = GetCurrentmsTime();
 		AssemblyRQPacket();
 		if (showInfo)

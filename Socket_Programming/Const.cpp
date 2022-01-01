@@ -14,4 +14,4 @@ long long TFTP::GetCurrentmsTime()
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-//不是很理解为什么要写到外面（（
+//不是很理解这个GetCurrentmsTime为什么要写到外面才能正常编译（（

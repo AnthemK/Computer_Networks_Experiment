@@ -22,8 +22,6 @@ namespace TFTP {
 		static void OutputtoCerr(const int Infor_Type,const char* Output_Msg);   //输出到控制台
 		static void OutputtoBoth(const int Infor_Type,const char* Output_Msg);   //两个都输出
 	};
-
-
 }
 
 #endif
