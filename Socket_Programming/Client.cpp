@@ -205,7 +205,7 @@ namespace TFTP {
 			Connection_Infor.SuccessPacketNum++;
 			Now_BlkNO++;
 		}
-		Log_Output::Log_Msg << "Upload Mession Success!!!\n" << "File Name: " << Connection_Infor.FilePath << "\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n"  << "Average Speed:" << Connection_Infor.SuccessBytes * 1000 / (GetCurrentmsTime() - Connection_Infor.Begin_Time) << " Bytes per Second\n" << "Packet Loss Rate " << (1-sqrt((double)Connection_Infor.SuccessPacketNum / (double)Connection_Infor.TotPacketNum)) << "\n";
+		Log_Output::Log_Msg << "Upload Mession Success!!!\n" << "File Name: " << Connection_Infor.FilePath << "\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n"  << "Average Speed:" << Connection_Infor.SuccessBytes * 1000ll / (GetCurrentmsTime() - Connection_Infor.Begin_Time) << " Bytes per Second\n" << "Packet Loss Rate " << (1-sqrt((double)Connection_Infor.SuccessPacketNum / (double)Connection_Infor.TotPacketNum)) << "\n";
 		Log_Output::OutputtoBoth(2, NULL);
 	}
 	int Client_Class::Download_File() {
@@ -229,7 +229,7 @@ namespace TFTP {
 				return -1;
 			}
 			SendPkt.PackACK(ReceivePkt.ExtractBlockNo());
-			if (ReceivePkt.ExtractBlockNo() == Now_BlkNO) {   //注意此处，如过不符合则不进行统计和文件写入，但是仍然要发送ACK
+			if (ReceivePkt.ExtractBlockNo() == Now_BlkNO) {   //注意此处，如果不符合则不进行统计和文件写入，但是仍然要发送ACK
 				lenofdata = fwrite((char *)ReceivePkt.GetByteAddr(4),1, ReceivePkt.getDataLen(), Connection_Infor.Local_FilePointer);
 				Connection_Infor.SuccessBytes += ReceivePkt.getDataLen(); //增加传输成功的字节数
 				Log_Output::Log_Msg << "Download Data Blk " << Now_BlkNO << " Success!!!\n";
@@ -241,7 +241,7 @@ namespace TFTP {
 			SendACK(ReceivePkt.ExtractBlockNo());
 			Connection_Infor.TotPacketNum++;
 		}
-		Log_Output::Log_Msg << "Download Mession Success!!!\n" <<"File Name: "<< Connection_Infor.FilePath << "\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n" << "Average Speed:" << Connection_Infor.SuccessBytes * 1000 / (GetCurrentmsTime() - Connection_Infor.Begin_Time) << " Bytes per Second\n" << "Packet Loss Rate " <<(1- sqrt((double)Connection_Infor.SuccessPacketNum / (double )Connection_Infor.TotPacketNum))<<"\n";
+		Log_Output::Log_Msg << "Download Mession Success!!!\n" <<"File Name: "<< Connection_Infor.FilePath << "\n" << "In " << std::dec << GetCurrentmsTime() - Connection_Infor.Begin_Time << " MillionSeconds\n" << "Totally transmitted " << Connection_Infor.SuccessBytes << " Bytes\n" << "Average Speed:" << Connection_Infor.SuccessBytes * 1000ll / (GetCurrentmsTime() - Connection_Infor.Begin_Time) << " Bytes per Second\n" << "Packet Loss Rate " <<(1- sqrt((double)Connection_Infor.SuccessPacketNum / (double )Connection_Infor.TotPacketNum))<<"\n";
 		Log_Output::OutputtoBoth(2, NULL);
 
 	}
