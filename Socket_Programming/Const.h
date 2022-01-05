@@ -48,7 +48,7 @@ namespace TFTP{
 
 	constexpr uint DefIp = 0x0100007f;	//默认IP(127.0.0.1)
 	constexpr ll DefTimeOut = 200;		//默认超时时间
-	constexpr uint DefRetries = 6;		//默认重传次数
+	constexpr uint DefRetries = 10;		//默认重传次数
 	constexpr uint DefSleepTime = 10;      //默认没过20ms查看一次套接字缓存
 	constexpr uint16 DefPort = 69;	//第一次连接的服务器端口号
 	constexpr uint16 OpRRQ = 1;			//读请求操作码

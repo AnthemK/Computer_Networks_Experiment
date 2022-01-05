@@ -6,7 +6,7 @@ namespace TFPT {
 	//int SktAddrLen = sizeof(sockaddr);	
 }
 bool TFTP::ReadInforFromConfiguration = false;
-bool TFTP::showInfo = true;
+bool TFTP::showInfo = false;
 int TFTP::SktAddrLen = sizeof(sockaddr);
 bool TFTP::EchoInputPara = true;
 long long TFTP::GetCurrentmsTime()

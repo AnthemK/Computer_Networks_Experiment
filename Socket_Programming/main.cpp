@@ -94,30 +94,31 @@ WrongThreadNum:
 
 	WrongFile:
 		strcpy(InputStr, ".\\Files\\");  //默认放置到这个文件里面，而服务器默认是NewTask.Connection_Infor.FilePath文件
-		if (!ReadInforFromConfiguration) printf("Please Input File Path for thread %d (Local File will be inside .\Files\):",i);
+		if (!ReadInforFromConfiguration) printf("Please Input File Path for thread %d (Local File will be inside .\\Files\\):",i);
 		scanf_s("%s", NewTask[i].Connection_Infor.FilePath, DefBufSize);
 		if (EchoInputPara) outt(NewTask[i].Connection_Infor.FilePath),hh;
 		strcpy(InputStr + 8, NewTask[i].Connection_Infor.FilePath);
 		NewTask[i].err = CreateFilePointer(InputStr, (((NewTask[i].Connection_Infor.FunctionType - 1) ? 1 : 0) | (NewTask[i].File_DataMode ? 2 : 0)), NewTask[i].Connection_Infor.Local_FilePointer);//NewTask.Connection_Infor.FunctionType-1是为了压位
 		if (NewTask[i].err) { Log_Output::OutputtoBoth(2, "Wrong FileName!!!");  goto WrongFile; }
-
-
-		if (NumofThread == 1)
-		{
-			if (NewTask[i].Connection_Infor.FunctionType == 1) {
-				NewTask[i].Download_File();
-				//_endthreadex
-			}
-			else if (NewTask[i].Connection_Infor.FunctionType == 2) {
-				NewTask[i].Upload_File();
-			}
-			else Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
-		}
 	}
 	puts("Press Enter to Start");
 	system("pause");
-	for(int i=1;i<=NumofThread;++i) Threads[i] = (HANDLE)_beginthreadex(NULL, 0, BeginMultiThread, (void*)(&NewTask[i]), 0, NULL);
-	for (int i = 1; i <= NumofThread; ++i) if(Threads[i]!=NULL)WaitForSingleObject(Threads[i],INFINITE);  //等待所有正确建立的线程运行结束
+
+	if (NumofThread == 1)
+	{
+		if (NewTask[1].Connection_Infor.FunctionType == 1) {
+			NewTask[1].Download_File();
+			//_endthreadex
+		}
+		else if (NewTask[1].Connection_Infor.FunctionType == 2) {
+			NewTask[1].Upload_File();
+		}
+		else Log_Output::OutputtoBoth(2, "Wrong FunctionType!!!");
+	}
+	else {
+		for (int i = 1; i <= NumofThread; ++i) Threads[i] = (HANDLE)_beginthreadex(NULL, 0, BeginMultiThread, (void*)(&NewTask[i]), 0, NULL);
+		for (int i = 1; i <= NumofThread; ++i) if (Threads[i] != NULL)WaitForSingleObject(Threads[i], INFINITE);  //等待所有正确建立的线程运行结束
+	}
 	return 0;
 }
 
